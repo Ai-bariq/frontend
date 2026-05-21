@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as LoginRouteImport } from './routes/Login'
+import { Route as PrivacyPolicyRouteRouteImport } from './routes/privacy-policy/route'
 import { Route as ClientDashboardRouteRouteImport } from './routes/ClientDashboard/route'
 import { Route as AdminDashboardRouteRouteImport } from './routes/AdminDashboard/route'
 import { Route as IndexRouteImport } from './routes/index'
@@ -30,6 +31,11 @@ import { Route as AdminDashboardAdminHomeRouteImport } from './routes/AdminDashb
 const LoginRoute = LoginRouteImport.update({
   id: '/Login',
   path: '/Login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrivacyPolicyRouteRoute = PrivacyPolicyRouteRouteImport.update({
+  id: '/privacy-policy',
+  path: '/privacy-policy',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ClientDashboardRouteRoute = ClientDashboardRouteRouteImport.update({
@@ -120,6 +126,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/AdminDashboard': typeof AdminDashboardRouteRouteWithChildren
   '/ClientDashboard': typeof ClientDashboardRouteRouteWithChildren
+  '/privacy-policy': typeof PrivacyPolicyRouteRoute
   '/Login': typeof LoginRoute
   '/AdminDashboard/AdminHome': typeof AdminDashboardAdminHomeRoute
   '/AdminDashboard/AdminSettings': typeof AdminDashboardAdminSettingsRoute
@@ -138,6 +145,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/AdminDashboard': typeof AdminDashboardRouteRouteWithChildren
+  '/privacy-policy': typeof PrivacyPolicyRouteRoute
   '/Login': typeof LoginRoute
   '/AdminDashboard/AdminHome': typeof AdminDashboardAdminHomeRoute
   '/AdminDashboard/AdminSettings': typeof AdminDashboardAdminSettingsRoute
@@ -158,6 +166,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/AdminDashboard': typeof AdminDashboardRouteRouteWithChildren
   '/ClientDashboard': typeof ClientDashboardRouteRouteWithChildren
+  '/privacy-policy': typeof PrivacyPolicyRouteRoute
   '/Login': typeof LoginRoute
   '/AdminDashboard/AdminHome': typeof AdminDashboardAdminHomeRoute
   '/AdminDashboard/AdminSettings': typeof AdminDashboardAdminSettingsRoute
@@ -179,6 +188,7 @@ export interface FileRouteTypes {
     | '/'
     | '/AdminDashboard'
     | '/ClientDashboard'
+    | '/privacy-policy'
     | '/Login'
     | '/AdminDashboard/AdminHome'
     | '/AdminDashboard/AdminSettings'
@@ -197,6 +207,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/AdminDashboard'
+    | '/privacy-policy'
     | '/Login'
     | '/AdminDashboard/AdminHome'
     | '/AdminDashboard/AdminSettings'
@@ -216,6 +227,7 @@ export interface FileRouteTypes {
     | '/'
     | '/AdminDashboard'
     | '/ClientDashboard'
+    | '/privacy-policy'
     | '/Login'
     | '/AdminDashboard/AdminHome'
     | '/AdminDashboard/AdminSettings'
@@ -236,6 +248,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminDashboardRouteRoute: typeof AdminDashboardRouteRouteWithChildren
   ClientDashboardRouteRoute: typeof ClientDashboardRouteRouteWithChildren
+  PrivacyPolicyRouteRoute: typeof PrivacyPolicyRouteRoute
   LoginRoute: typeof LoginRoute
 }
 
@@ -246,6 +259,13 @@ declare module '@tanstack/react-router' {
       path: '/Login'
       fullPath: '/Login'
       preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/privacy-policy': {
+      id: '/privacy-policy'
+      path: '/privacy-policy'
+      fullPath: '/privacy-policy'
+      preLoaderRoute: typeof PrivacyPolicyRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/ClientDashboard': {
@@ -411,6 +431,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminDashboardRouteRoute: AdminDashboardRouteRouteWithChildren,
   ClientDashboardRouteRoute: ClientDashboardRouteRouteWithChildren,
+  PrivacyPolicyRouteRoute: PrivacyPolicyRouteRoute,
   LoginRoute: LoginRoute,
 }
 export const routeTree = rootRouteImport

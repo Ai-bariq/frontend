@@ -8,8 +8,8 @@ const navLinks = [
   { label: 'كيف يعمل', to: '/', hash: 'how-it-works' },
   { label: 'المميزات', to: '/', hash: 'features' },
   { label: 'الأسعار', to: '/', hash: 'pricing' },
+  { label: 'سياسة الخصوصية', to: '/privacy-policy' },
 ] as const
-
 export default function Header() {
   const [isOpen, setIsOpen] = useState(false)
 

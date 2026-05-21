@@ -10,6 +10,8 @@ import {
   User,
   KeyRound,
 } from 'lucide-react'
+import { useCurrentUser } from '../../utils/useCurrentUser'
+import { getAvatar } from '../../utils/getAvatar'
 
 export const Route = createFileRoute('/ClientDashboard/Settings')({
   component: SettingsPage,
@@ -20,21 +22,22 @@ type ProfileSettings = {
   email: string
   phone: string
   googleAccountEmail: string
-  avatarUrl: string
+  avatarUrl: string | null
   isVerified: boolean
 }
 
-const profile: ProfileSettings = {
-  name: 'rehab mahmoud',
-  email: 'roby.mahmoud.rm@gmail.com',
-  phone: '5X XXX XXXX',
-  googleAccountEmail: 'roby.mahmoud.rm@gmail.com',
-  avatarUrl:
-    'https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=300&auto=format&fit=crop',
-  isVerified: true,
-}
-
 function SettingsPage() {
+  const user = useCurrentUser()
+
+  const profile: ProfileSettings = {
+    name: user?.name || '',
+    email: user?.email || '',
+    phone: user?.phone || '',
+    googleAccountEmail: user?.email || '',
+    avatarUrl: getAvatar(user?.avatar ?? null),
+    isVerified: Boolean(user?.isEmailVerified),
+  }
+
   return (
     <section dir="rtl" className="min-h-[calc(100vh-80px)] bg-white">
       <div className="px-6 py-8">
@@ -98,18 +101,24 @@ function ProfileCard({ profile }: { profile: ProfileSettings }) {
     <CardShell>
       <div className="bg-[#EAF5F4] px-6 py-10">
         <div className="flex flex-col items-center justify-center text-center">
-          <div className="h-28 w-28 overflow-hidden rounded-full border-4 border-white shadow-md">
-            <img
-              src={profile.avatarUrl}
-              alt={profile.name}
-              className="h-full w-full object-cover"
-            />
-          </div>
+          {profile.avatarUrl ? (
+            <div className="h-28 w-28 overflow-hidden rounded-full border-4 border-white shadow-md">
+              <img
+                src={profile.avatarUrl}
+                alt={profile.name || 'profile'}
+                className="h-full w-full object-cover"
+              />
+            </div>
+          ) : (
+            <div className="flex h-28 w-28 items-center justify-center rounded-full border-4 border-white bg-slate-100 shadow-md">
+              <User className="h-12 w-12 text-slate-500" />
+            </div>
+          )}
 
           <h2 className="mt-4 text-4xl font-extrabold tracking-tight text-slate-900">
-            {profile.name}
+            {profile.name || '—'}
           </h2>
-          <p className="mt-1 text-lg text-slate-500">{profile.email}</p>
+          <p className="mt-1 text-lg text-slate-500">{profile.email || '—'}</p>
         </div>
       </div>
 
@@ -163,7 +172,7 @@ function ProfileCard({ profile }: { profile: ProfileSettings }) {
             />
 
             <p className="mt-3 text-right text-sm leading-7 text-slate-500">
-              حسابك مرتبط بـ Google. يمكنك إدارة إعدادات حساب Google الخاص بك من خارجياً.
+              حسابك مرتبط بـ Google. يمكنك إدارة إعدادات حساب Google الخاص بك خارجياً.
             </p>
           </div>
 
@@ -240,7 +249,7 @@ function DangerZoneCard() {
               </div>
 
               <p className="mt-3 text-sm leading-7 text-slate-600">
-                بمجرد حذف حسابك، لا يمكن التراجع. سيتم حذف جميع موظفيك وتقييماتك وردودك نهائيًا.
+                بمجرد حذف حسابك، لا يمكن التراجع. سيتم حذف جميع تقييماتك وردودك نهائيًا.
               </p>
             </div>
           </div>
@@ -270,8 +279,9 @@ function LabeledInput({
 
       <input
         type="text"
-        defaultValue={value}
+        value={value || ''}
         readOnly={readOnly}
+        onChange={() => {}}
         className={`h-12 w-full rounded-xl border border-slate-200 px-4 text-right text-sm outline-none ${
           readOnly ? 'bg-slate-50 text-slate-500' : 'bg-white text-slate-900'
         }`}

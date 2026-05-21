@@ -14,17 +14,18 @@ type FooterBadge = {
 }
 
 const FOOTER_CONTENT = {
-  brandName: 'Repma',
+  brandName: 'Bariq Ai',
   description:
     'موظفك الرقمي للردود التلقائية على تقييمات خرائط جوجل باللهجة السعودية البيضاء الأصيلة. صفر صيانة، جودة عالية.',
-  phone: '+966 123456789',
+  phone: '+966 539300197',
   productTitle: 'المنتج',
-  copyright: '© 2026 Repma. جميع الحقوق محفوظة.',
+  copyright: '© 2026 Bariq Ai. جميع الحقوق محفوظة.',
   links: [
     { label: 'ابدأ الآن', href: '/login' },
     { label: 'الأسعار', href: '#pricing' },
     { label: 'المميزات', href: '#features' },
     { label: 'التجربة', href: '/login' },
+    { label: 'سياسة الخصوصية', href: '/privacy-policy' },
   ] satisfies FooterLink[],
   badges: [
     { label: 'آمن 100%', icon: <ShieldCheck className="h-4 w-4" /> },

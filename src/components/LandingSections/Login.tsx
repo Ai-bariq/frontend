@@ -12,7 +12,11 @@ import logo from '../../assets/logo.png'
 import googleImage from '../../assets/google.png'
 import avatar from '../../assets/avatar.png'
 import mapsImage from '../../assets/maps.png'
-
+import { loginUser, signupUser } from '../../services/authServices'
+const API_URL = import.meta.env.VITE_API_URL
+const handleGoogleAuth = () => {
+  window.location.href = `${API_URL}/auth/google`
+}
 type AuthMode = 'login' | 'signup'
 
 type FormErrors = Record<string, string>
@@ -69,7 +73,7 @@ const CONTENT = {
     heroFooter: 'انضم +50 نشاط تجاري في السعودية',
     passwordHint: 'يجب أن تكون 8 أحرف على الأقل',
     reviewTitle: 'تقييم جديد في خرائط جوجل',
-    reviewName: "محمد الريحاني",
+    reviewName: 'محمد الريحاني',
     reviewText: 'الأكل لذيذ جداً والخدمة ممتازة 👏',
     replyAuthor: 'فهد',
     reviewReply:
@@ -80,13 +84,12 @@ const CONTENT = {
 const STYLES = {
   page: 'min-h-screen bg-[#F4FAF8] px-4 py-8 sm:px-6 lg:px-8',
   topLogoWrap: 'mb-8 flex justify-center',
-topLogo: 'w-[80px] sm:w-[160px] lg:w-[180px] h-auto object-contain',
+  topLogo: 'w-[80px] sm:w-[160px] lg:w-[180px] h-auto object-contain',
   shell: 'mx-auto flex w-full max-w-[1180px] items-center justify-center',
   layout:
     'flex w-full flex-col items-center justify-center gap-10 lg:flex-row lg:items-start lg:gap-14',
   heroWrap: 'hidden w-full max-w-[520px] lg:block',
   formWrap: 'w-full max-w-[430px]',
-
   heroTitle:
     'text-right text-[34px] font-bold leading-[1.25] tracking-[-0.02em] text-slate-900',
   heroBulletList: 'mt-5 flex flex-col gap-3',
@@ -99,18 +102,15 @@ topLogo: 'w-[80px] sm:w-[160px] lg:w-[180px] h-auto object-contain',
   heroFooterBadges: 'flex items-center gap-2',
   heroFooterBadge:
     'flex h-8 w-8 items-center justify-center rounded-full bg-[#A7EFE0] text-[13px] font-bold text-[#0E8E81]',
-
   card:
     'rounded-[22px] border border-slate-200/70 bg-white/90 p-6 shadow-[0_10px_30px_rgba(15,23,42,0.08)] backdrop-blur sm:p-8',
-  formTitle:
-    'text-right text-[34px] font-bold leading-none text-slate-900',
+  formTitle: 'text-right text-[34px] font-bold leading-none text-slate-900',
   googleButton:
     'mt-6 flex h-11 w-full items-center justify-center gap-3 rounded-[10px] border border-slate-200 bg-white px-4 text-[15px] font-medium text-slate-800 transition hover:bg-slate-50',
   googleIcon: 'h-5 w-5 object-contain',
   dividerWrap: 'my-4 flex items-center gap-4',
   dividerLine: 'h-px flex-1 bg-slate-200',
   dividerText: 'text-[13px] text-slate-400',
-
   form: 'space-y-4',
   fieldWrap: 'space-y-1.5',
   label: 'block text-right text-[14px] font-bold text-slate-900',
@@ -121,37 +121,34 @@ topLogo: 'w-[80px] sm:w-[160px] lg:w-[180px] h-auto object-contain',
   prefixInput: 'pr-16 pl-4',
   prefix:
     'pointer-events-none absolute inset-y-0 right-0 flex items-center pr-4 text-[14px] text-slate-500',
-  leadingIcon:
-    'absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400',
+  leadingIcon: 'absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400',
   errorText: 'text-right text-[12px] text-red-500',
   helperText: 'text-right text-[12px] text-slate-400',
+  serverError:
+    'mb-4 rounded-lg bg-red-50 px-4 py-3 text-right text-sm text-red-600',
   forgotWrap: 'flex justify-start',
   forgotButton:
     'text-[13px] font-medium text-[#14A595] transition hover:text-[#0E8E81]',
   submit:
     'mt-2 flex h-11 w-full items-center justify-center rounded-[10px] bg-[#159A8C] text-[15px] font-bold text-white transition hover:bg-[#13897d] disabled:cursor-not-allowed disabled:opacity-60',
-  secondaryAction:
-    'mt-4 flex flex-col items-center gap-3 text-center',
+  secondaryAction: 'mt-4 flex flex-col items-center gap-3 text-center',
   switchPrompt: 'text-[14px] text-slate-400',
   switchButton:
     'flex h-11 w-full items-center justify-center rounded-[10px] border border-slate-200 bg-white text-[15px] font-medium text-slate-800 transition hover:bg-slate-50',
-
   previewCard:
     'mt-8 overflow-hidden rounded-[18px] border border-slate-200 bg-white shadow-[0_10px_24px_rgba(15,23,42,0.06)]',
   previewHeader:
     'flex items-center justify-between border-b border-slate-100 bg-slate-50 px-4 py-3',
-  previewHeaderTitle:
-    'flex items-center gap-2 text-[13px] font-bold text-slate-700',
+  previewHeaderTitle: 'flex items-center gap-2 text-[13px] font-bold text-slate-700',
   previewMapIcon: 'h-4 w-4 object-contain',
-  previewLive:
-    'flex items-center gap-1 text-[12px] font-medium text-emerald-600',
+  previewLive: 'flex items-center gap-1 text-[12px] font-medium text-emerald-600',
   previewBody: 'space-y-4 p-4',
   stars: 'flex items-center gap-1 text-[#F4B400]',
   reviewName: 'text-right text-[15px] font-bold text-slate-900',
   reviewText: 'text-right text-[14px] leading-7 text-slate-600',
   replyBox:
     'rounded-[14px] bg-[#F8FCFB] p-3 text-right ring-1 ring-[#DDF4EF] min-h-[180px]',
-replyMeta: 'mb-3 flex items-start justify-between gap-2',
+  replyMeta: 'mb-3 flex items-start justify-between gap-2',
   replyIdentity: 'flex items-center gap-2',
   avatar: 'h-9 w-9 rounded-full object-cover ring-2 ring-white',
   replyAuthor: 'text-[13px] font-bold text-slate-900',
@@ -206,13 +203,13 @@ function HeroPanel() {
       <div className={STYLES.heroBulletList}>
         {CONTENT.shared.heroBullets.map((item, index) => {
           const Icon = bulletIcons[index]
+
           return (
             <div key={item} className={STYLES.heroBullet}>
-                <span className={STYLES.heroBulletIcon}>
+              <span className={STYLES.heroBulletIcon}>
                 <Icon className="h-4 w-4" />
               </span>
               <span>{item}</span>
-              
             </div>
           )
         })}
@@ -249,8 +246,11 @@ function HeroPanel() {
             <div className={STYLES.replyMeta}>
               <div className={STYLES.replyIdentity}>
                 <img src={avatar} alt="Fahd" className={STYLES.avatar} />
+
                 <div className="text-right">
-                  <div className={STYLES.replyAuthor}>{CONTENT.shared.replyAuthor}</div>
+                  <div className={STYLES.replyAuthor}>
+                    {CONTENT.shared.replyAuthor}
+                  </div>
                 </div>
               </div>
 
@@ -270,21 +270,31 @@ function HeroPanel() {
             </span>
           ))}
         </div>
+
         <span>{CONTENT.shared.heroFooter}</span>
       </div>
     </div>
   )
 }
 
-function GoogleButton({ text }: { text: string }) {
+function GoogleButton({
+  text,
+  onClick,
+}: {
+  text: string
+  onClick: () => void
+}) {
   return (
-    <button type="button" className={STYLES.googleButton}>
+    <button
+      type="button"
+      className={STYLES.googleButton}
+      onClick={onClick}
+    >
       <img src={googleImage} alt="Google" className={STYLES.googleIcon} />
       <span>{text}</span>
     </button>
   )
 }
-
 function PasswordField({
   label,
   value,
@@ -319,6 +329,7 @@ function PasswordField({
           type="button"
           onClick={() => setShow((prev) => !prev)}
           className={STYLES.leadingIcon}
+          aria-label={show ? 'Hide password' : 'Show password'}
         >
           {show ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
         </button>
@@ -351,6 +362,7 @@ function TextField({
   return (
     <div className={STYLES.fieldWrap}>
       <label className={STYLES.label}>{label}</label>
+
       <input
         type={type}
         value={value}
@@ -361,6 +373,7 @@ function TextField({
         }`}
         dir={type === 'email' ? 'ltr' : 'rtl'}
       />
+
       {error ? <p className={STYLES.errorText}>{error}</p> : null}
     </div>
   )
@@ -385,6 +398,7 @@ function PhoneField({
 
       <div className={STYLES.inputWrap}>
         <span className={STYLES.prefix}>966+</span>
+
         <input
           type="tel"
           value={normalized}
@@ -408,6 +422,8 @@ export default function LoginPage() {
   const [signupForm, setSignupForm] = useState<SignupForm>(SIGNUP_INITIAL)
   const [loginErrors, setLoginErrors] = useState<FormErrors>({})
   const [signupErrors, setSignupErrors] = useState<FormErrors>({})
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [serverError, setServerError] = useState('')
 
   const activeContent = useMemo(
     () => (mode === 'login' ? CONTENT.login : CONTENT.signup),
@@ -464,27 +480,68 @@ export default function LoginPage() {
     return Object.keys(errors).length === 0
   }
 
-  const handleLoginSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleLoginSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
+
     if (!validateLogin()) return
 
-    console.log('login payload', loginForm)
+    try {
+      setIsSubmitting(true)
+      setServerError('')
+
+      const response: any = await loginUser(loginForm)
+
+     localStorage.setItem('token', response.data.accessToken)
+localStorage.setItem('user', JSON.stringify(response.data.user))
+
+      window.location.href = '/ClientDashboard'
+    } catch (error) {
+      setServerError(error instanceof Error ? error.message : 'فشل تسجيل الدخول')
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
-  const handleSignupSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSignupSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
+
     if (!validateSignup()) return
 
-    console.log('signup payload', {
-      ...signupForm,
-      phone: `+966${signupForm.phone.replace(/\D/g, '')}`,
-    })
+    try {
+      setIsSubmitting(true)
+      setServerError('')
+
+      const payload = {
+        name: signupForm.fullName,
+        email: signupForm.email,
+        phone: `+966${signupForm.phone.replace(/\D/g, '')}`,
+        password: signupForm.password,
+      }
+
+      const response: any = await signupUser(payload)
+
+      localStorage.setItem('token', response.data.accessToken)
+localStorage.setItem('user', JSON.stringify(response.data.user))
+
+      window.location.href = '/ClientDashboard'
+    } catch (error) {
+      setServerError(error instanceof Error ? error.message : 'فشل إنشاء الحساب')
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  const handleModeSwitch = () => {
+    setServerError('')
+    setLoginErrors({})
+    setSignupErrors({})
+    setMode((prev) => (prev === 'login' ? 'signup' : 'login'))
   }
 
   return (
     <section dir="rtl" className={STYLES.page}>
       <div className={STYLES.topLogoWrap}>
-        <img src={logo} alt="Repma" className={STYLES.topLogo} />
+        <img src={logo} alt="Bariq AI" className={STYLES.topLogo} />
       </div>
 
       <div className={STYLES.shell}>
@@ -497,13 +554,20 @@ export default function LoginPage() {
             <div className={STYLES.card}>
               <h2 className={STYLES.formTitle}>{activeContent.title}</h2>
 
-              <GoogleButton text={activeContent.google} />
+              <GoogleButton
+  text={activeContent.google}
+  onClick={handleGoogleAuth}
+/>
 
               <div className={STYLES.dividerWrap}>
                 <div className={STYLES.dividerLine} />
                 <span className={STYLES.dividerText}>{CONTENT.shared.divider}</span>
                 <div className={STYLES.dividerLine} />
               </div>
+
+              {serverError ? (
+                <p className={STYLES.serverError}>{serverError}</p>
+              ) : null}
 
               {mode === 'login' ? (
                 <form className={STYLES.form} onSubmit={handleLoginSubmit} noValidate>
@@ -533,8 +597,12 @@ export default function LoginPage() {
                     </button>
                   </div>
 
-                  <button type="submit" className={STYLES.submit}>
-                    {CONTENT.login.submit}
+                  <button
+                    type="submit"
+                    className={STYLES.submit}
+                    disabled={isSubmitting}
+                  >
+                    {isSubmitting ? 'جاري الإرسال...' : CONTENT.login.submit}
                   </button>
                 </form>
               ) : (
@@ -579,8 +647,12 @@ export default function LoginPage() {
                     hint={CONTENT.shared.passwordHint}
                   />
 
-                  <button type="submit" className={STYLES.submit}>
-                    {CONTENT.signup.submit}
+                  <button
+                    type="submit"
+                    className={STYLES.submit}
+                    disabled={isSubmitting}
+                  >
+                    {isSubmitting ? 'جاري الإرسال...' : CONTENT.signup.submit}
                   </button>
                 </form>
               )}
@@ -591,9 +663,8 @@ export default function LoginPage() {
                 <button
                   type="button"
                   className={STYLES.switchButton}
-                  onClick={() =>
-                    setMode((prev) => (prev === 'login' ? 'signup' : 'login'))
-                  }
+                  onClick={handleModeSwitch}
+                  disabled={isSubmitting}
                 >
                   {activeContent.switchAction}
                 </button>
