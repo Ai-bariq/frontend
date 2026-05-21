@@ -10,6 +10,8 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as LoginRouteImport } from './routes/Login'
+import { Route as TermsRouteRouteImport } from './routes/terms/route'
+import { Route as RefundPolicyRouteRouteImport } from './routes/refund-policy/route'
 import { Route as PrivacyPolicyRouteRouteImport } from './routes/privacy-policy/route'
 import { Route as ClientDashboardRouteRouteImport } from './routes/ClientDashboard/route'
 import { Route as AdminDashboardRouteRouteImport } from './routes/AdminDashboard/route'
@@ -31,6 +33,16 @@ import { Route as AdminDashboardAdminHomeRouteImport } from './routes/AdminDashb
 const LoginRoute = LoginRouteImport.update({
   id: '/Login',
   path: '/Login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TermsRouteRoute = TermsRouteRouteImport.update({
+  id: '/terms',
+  path: '/terms',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RefundPolicyRouteRoute = RefundPolicyRouteRouteImport.update({
+  id: '/refund-policy',
+  path: '/refund-policy',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PrivacyPolicyRouteRoute = PrivacyPolicyRouteRouteImport.update({
@@ -127,6 +139,8 @@ export interface FileRoutesByFullPath {
   '/AdminDashboard': typeof AdminDashboardRouteRouteWithChildren
   '/ClientDashboard': typeof ClientDashboardRouteRouteWithChildren
   '/privacy-policy': typeof PrivacyPolicyRouteRoute
+  '/refund-policy': typeof RefundPolicyRouteRoute
+  '/terms': typeof TermsRouteRoute
   '/Login': typeof LoginRoute
   '/AdminDashboard/AdminHome': typeof AdminDashboardAdminHomeRoute
   '/AdminDashboard/AdminSettings': typeof AdminDashboardAdminSettingsRoute
@@ -146,6 +160,8 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/AdminDashboard': typeof AdminDashboardRouteRouteWithChildren
   '/privacy-policy': typeof PrivacyPolicyRouteRoute
+  '/refund-policy': typeof RefundPolicyRouteRoute
+  '/terms': typeof TermsRouteRoute
   '/Login': typeof LoginRoute
   '/AdminDashboard/AdminHome': typeof AdminDashboardAdminHomeRoute
   '/AdminDashboard/AdminSettings': typeof AdminDashboardAdminSettingsRoute
@@ -167,6 +183,8 @@ export interface FileRoutesById {
   '/AdminDashboard': typeof AdminDashboardRouteRouteWithChildren
   '/ClientDashboard': typeof ClientDashboardRouteRouteWithChildren
   '/privacy-policy': typeof PrivacyPolicyRouteRoute
+  '/refund-policy': typeof RefundPolicyRouteRoute
+  '/terms': typeof TermsRouteRoute
   '/Login': typeof LoginRoute
   '/AdminDashboard/AdminHome': typeof AdminDashboardAdminHomeRoute
   '/AdminDashboard/AdminSettings': typeof AdminDashboardAdminSettingsRoute
@@ -189,6 +207,8 @@ export interface FileRouteTypes {
     | '/AdminDashboard'
     | '/ClientDashboard'
     | '/privacy-policy'
+    | '/refund-policy'
+    | '/terms'
     | '/Login'
     | '/AdminDashboard/AdminHome'
     | '/AdminDashboard/AdminSettings'
@@ -208,6 +228,8 @@ export interface FileRouteTypes {
     | '/'
     | '/AdminDashboard'
     | '/privacy-policy'
+    | '/refund-policy'
+    | '/terms'
     | '/Login'
     | '/AdminDashboard/AdminHome'
     | '/AdminDashboard/AdminSettings'
@@ -228,6 +250,8 @@ export interface FileRouteTypes {
     | '/AdminDashboard'
     | '/ClientDashboard'
     | '/privacy-policy'
+    | '/refund-policy'
+    | '/terms'
     | '/Login'
     | '/AdminDashboard/AdminHome'
     | '/AdminDashboard/AdminSettings'
@@ -249,6 +273,8 @@ export interface RootRouteChildren {
   AdminDashboardRouteRoute: typeof AdminDashboardRouteRouteWithChildren
   ClientDashboardRouteRoute: typeof ClientDashboardRouteRouteWithChildren
   PrivacyPolicyRouteRoute: typeof PrivacyPolicyRouteRoute
+  RefundPolicyRouteRoute: typeof RefundPolicyRouteRoute
+  TermsRouteRoute: typeof TermsRouteRoute
   LoginRoute: typeof LoginRoute
 }
 
@@ -259,6 +285,20 @@ declare module '@tanstack/react-router' {
       path: '/Login'
       fullPath: '/Login'
       preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/terms': {
+      id: '/terms'
+      path: '/terms'
+      fullPath: '/terms'
+      preLoaderRoute: typeof TermsRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/refund-policy': {
+      id: '/refund-policy'
+      path: '/refund-policy'
+      fullPath: '/refund-policy'
+      preLoaderRoute: typeof RefundPolicyRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/privacy-policy': {
@@ -432,6 +472,8 @@ const rootRouteChildren: RootRouteChildren = {
   AdminDashboardRouteRoute: AdminDashboardRouteRouteWithChildren,
   ClientDashboardRouteRoute: ClientDashboardRouteRouteWithChildren,
   PrivacyPolicyRouteRoute: PrivacyPolicyRouteRoute,
+  RefundPolicyRouteRoute: RefundPolicyRouteRoute,
+  TermsRouteRoute: TermsRouteRoute,
   LoginRoute: LoginRoute,
 }
 export const routeTree = rootRouteImport

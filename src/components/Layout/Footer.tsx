@@ -26,6 +26,8 @@ const FOOTER_CONTENT = {
     { label: 'المميزات', href: '#features' },
     { label: 'التجربة', href: '/login' },
     { label: 'سياسة الخصوصية', href: '/privacy-policy' },
+{ label: 'الشروط والأحكام', href: '/terms' },
+{ label: 'الاسترجاع والاسترداد', href: '/refund-policy' },
   ] satisfies FooterLink[],
   badges: [
     { label: 'آمن 100%', icon: <ShieldCheck className="h-4 w-4" /> },
