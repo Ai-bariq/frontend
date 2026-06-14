@@ -2,157 +2,91 @@ import { MapPin, ShieldCheck } from 'lucide-react'
 import logo from '../../assets/logo.png'
 import whatsappIcon from '../../assets/whatsapp.svg'
 import type { ReactNode } from 'react'
+import { useLocale } from '../../contexts/LocaleContext'
 
-type FooterLink = {
-  label: string
-  href: string
-}
-
-type FooterBadge = {
+type FooterBadgeItem = {
   label: string
   icon: ReactNode
 }
 
-const FOOTER_CONTENT = {
-  brandName: 'Bariq Ai',
-  description:
-    'موظفك الرقمي للردود التلقائية على تقييمات خرائط جوجل باللهجة السعودية البيضاء الأصيلة. صفر صيانة، جودة عالية.',
-  phone: '+966 539300197',
-  productTitle: 'المنتج',
-  copyright: '© 2026 Bariq Ai. جميع الحقوق محفوظة.',
-  links: [
-    { label: 'ابدأ الآن', href: '/login' },
-    { label: 'الأسعار', href: '#pricing' },
-    { label: 'المميزات', href: '#features' },
-    { label: 'التجربة', href: '/login' },
-    { label: 'سياسة الخصوصية', href: '/privacy-policy' },
-{ label: 'الشروط والأحكام', href: '/terms' },
-{ label: 'الاسترجاع والاسترداد', href: '/refund-policy' },
-  ] satisfies FooterLink[],
-  badges: [
-    { label: 'آمن 100%', icon: <ShieldCheck className="h-4 w-4" /> },
-    {
-      label: 'صُنع في السعودية',
-      icon: <span className="text-[14px] leading-none">🇸🇦</span>,
-    },
-    { label: 'خرائط جوجل', icon: <MapPin className="h-4 w-4" /> },
-  ] satisfies FooterBadge[],
-} as const
-
-const STYLES = {
-  section: 'bg-[#04122F] text-white',
-  container: 'mx-auto flex w-full max-w-7xl flex-col px-4 sm:px-6 lg:px-8',
-
-  main:
-    'flex flex-col-reverse gap-9 py-12 sm:py-14 lg:flex-row lg:items-start lg:justify-between lg:gap-14',
-
-  brandColumn: 'flex max-w-[420px] flex-col items-start text-right',
-  brandLogoWrap: 'flex w-full justify-start',
-  brandLogo: 'h-14 w-auto object-contain',
-
-  description:
-    'mt-4 max-w-[420px] text-[14px] leading-[1.9] text-[#A5B4CF] sm:text-[15px]',
-
-  phoneLink:
-    'mt-4 inline-flex items-center gap-2 text-[14px] font-medium text-[#D7E2F2] transition-colors duration-200 hover:text-[#18C3B3]',
-  phoneIcon: 'h-[18px] w-[18px] shrink-0 object-contain',
-
-  navColumn: 'flex min-w-[140px] flex-col items-start text-right',
-  navTitle: 'text-[18px] font-extrabold text-white',
-  navList: 'mt-4 flex flex-col gap-3',
-  navLink:
-    'text-[14px] text-[#D7E2F2] transition-colors duration-200 hover:text-[#18C3B3]',
-
-  divider: 'my-4 h-px w-full bg-white/5',
-
-  bottom: 'py-6 sm:py-7',
-  bottomInner:
-    'flex w-full flex-col items-start gap-4 lg:flex-row lg:items-start lg:justify-between',
-
-  badgesWrap: 'flex flex-wrap items-start justify-start gap-2.5',
-  badge:
-    'inline-flex items-center gap-2 rounded-full bg-[#081A45] px-4 py-2 text-[14px] font-medium',
-  badgeIcon: 'text-[#18C3B3] text-[15px]',
-
-  copyright: 'text-[13px] text-[#96A6C3]',
-} as const
-
-function FooterBadgeItem({ label, icon }: FooterBadge) {
+function BadgeItem({ label, icon }: FooterBadgeItem) {
   return (
-    <div className={STYLES.badge}>
+    <div className="inline-flex items-center gap-2 rounded-full bg-[#081A45] px-4 py-2 text-[14px] font-medium">
       <span>{label}</span>
-      <span className={STYLES.badgeIcon}>{icon}</span>
-    </div>
-  )
-}
-
-function FooterLinks() {
-  return (
-    <div className={STYLES.navColumn}>
-      <h3 className={STYLES.navTitle}>{FOOTER_CONTENT.productTitle}</h3>
-
-      <nav className={STYLES.navList} aria-label={FOOTER_CONTENT.productTitle}>
-        {FOOTER_CONTENT.links.map((link) => (
-          <a key={link.label} href={link.href} className={STYLES.navLink}>
-            {link.label}
-          </a>
-        ))}
-      </nav>
-    </div>
-  )
-}
-
-function FooterBrand() {
-  return (
-    <div className={STYLES.brandColumn}>
-      <div className={STYLES.brandLogoWrap}>
-        <img
-          src={logo}
-          alt={FOOTER_CONTENT.brandName}
-          className={STYLES.brandLogo}
-        />
-      </div>
-
-      <p className={STYLES.description}>{FOOTER_CONTENT.description}</p>
-
-      <a href={`tel:${FOOTER_CONTENT.phone}`} className={STYLES.phoneLink}>
-        <span>{FOOTER_CONTENT.phone}</span>
-        <img
-          src={whatsappIcon}
-          alt="WhatsApp"
-          className={STYLES.phoneIcon}
-        />
-      </a>
+      <span className="text-[#18C3B3] text-[15px]">{icon}</span>
     </div>
   )
 }
 
 export default function Footer() {
+  const { t, dir } = useLocale()
+
+  const badgeIcons: ReactNode[] = [
+    <ShieldCheck className="h-4 w-4" />,
+    <span className="text-[14px] leading-none">🇸🇦</span>,
+    <MapPin className="h-4 w-4" />,
+  ]
+
+  const textAlign = dir === 'rtl' ? 'text-right' : 'text-left'
+  const itemsAlign = dir === 'rtl' ? 'items-end' : 'items-start'
+  const justifyStart = dir === 'rtl' ? 'justify-end' : 'justify-start'
+
   return (
-    <footer dir="rtl" className={STYLES.section}>
-      <div className={STYLES.container}>
-        <div className={STYLES.main}>
-          <FooterBrand />
-          <FooterLinks />
+    <footer dir={dir} className="bg-[#04122F] text-white">
+      <div className="mx-auto flex w-full max-w-7xl flex-col px-4 sm:px-6 lg:px-8">
+        <div className="flex flex-col-reverse gap-9 py-12 sm:py-14 lg:flex-row lg:items-start lg:justify-between lg:gap-14">
+          {/* Brand column */}
+          <div className={`flex max-w-[420px] flex-col ${itemsAlign} ${textAlign}`}>
+            <div className={`flex w-full ${justifyStart}`}>
+              <img
+                src={logo}
+                alt="Bariq Ai"
+                className="h-14 w-auto object-contain"
+              />
+            </div>
+
+            <p className="mt-4 max-w-[420px] text-[14px] leading-[1.9] text-[#A5B4CF] sm:text-[15px]">
+              {t.footer.description}
+            </p>
+
+            <a
+              href="tel:+966539300197"
+              className="mt-4 inline-flex items-center gap-2 text-[14px] font-medium text-[#D7E2F2] transition-colors duration-200 hover:text-[#18C3B3]"
+            >
+              <span>+966 539300197</span>
+              <img src={whatsappIcon} alt="WhatsApp" className="h-[18px] w-[18px] shrink-0 object-contain" />
+            </a>
+          </div>
+
+          {/* Nav column */}
+          <div className={`flex min-w-[140px] flex-col ${itemsAlign} ${textAlign}`}>
+            <h3 className="text-[18px] font-extrabold text-white">{t.footer.productTitle}</h3>
+
+            <nav className="mt-4 flex flex-col gap-3" aria-label={t.footer.productTitle}>
+              {t.footer.links.map((link) => (
+                <a
+                  key={link.label}
+                  href={link.href}
+                  className="text-[14px] text-[#D7E2F2] transition-colors duration-200 hover:text-[#18C3B3]"
+                >
+                  {link.label}
+                </a>
+              ))}
+            </nav>
+          </div>
         </div>
 
-        <div className={STYLES.divider} />
+        <div className="my-4 h-px w-full bg-white/5" />
 
-        <div className={STYLES.bottom}>
-          <div className={STYLES.bottomInner}>
-            <div className={STYLES.badgesWrap}>
-              {FOOTER_CONTENT.badges.map((badge) => (
-                <FooterBadgeItem
-                  key={badge.label}
-                  label={badge.label}
-                  icon={badge.icon}
-                />
+        <div className="py-6 sm:py-7">
+          <div className="flex w-full flex-col items-start gap-4 lg:flex-row lg:items-start lg:justify-between">
+            <div className="flex flex-wrap items-start justify-start gap-2.5">
+              {t.footer.badges.map((badge, i) => (
+                <BadgeItem key={badge.label} label={badge.label} icon={badgeIcons[i]} />
               ))}
             </div>
 
-            <p className={STYLES.copyright}>
-              {FOOTER_CONTENT.copyright}
-            </p>
+            <p className="text-[13px] text-[#96A6C3]">{t.footer.copyright}</p>
           </div>
         </div>
       </div>
