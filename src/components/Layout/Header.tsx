@@ -3,35 +3,37 @@ import { Menu, X } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import logo from '../../assets/logo.png'
 import messageIcon from '../../assets/message.svg'
+import { useLocale } from '../../contexts/LocaleContext'
 
-const navLinks = [
-  { label: 'كيف يعمل', to: '/', hash: 'how-it-works' },
-  { label: 'المميزات', to: '/', hash: 'features' },
-  { label: 'الأسعار', to: '/', hash: 'pricing' },
-  { label: 'سياسة الخصوصية', to: '/privacy-policy' },
-] as const
 export default function Header() {
+  const { t, locale, setLocale, isRTL } = useLocale()
   const [isOpen, setIsOpen] = useState(false)
+
+  const navLinks = [
+    { label: t.nav.howItWorks, to: '/', hash: 'how-it-works' },
+    { label: t.nav.features, to: '/', hash: 'features' },
+    { label: t.nav.pricing, to: '/', hash: 'pricing' },
+    { label: t.nav.privacy, to: '/privacy-policy' as const },
+  ] as const
 
   useEffect(() => {
     const closeOnResize = () => {
-      if (window.innerWidth >= 1024) {
-        setIsOpen(false)
-      }
+      if (window.innerWidth >= 1024) setIsOpen(false)
     }
-
     window.addEventListener('resize', closeOnResize)
     return () => window.removeEventListener('resize', closeOnResize)
   }, [])
+
+  const mobileTextAlign = isRTL ? 'text-right' : 'text-left'
 
   return (
     <header className="z-50 border-b border-border bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/80">
       <div className="mx-auto flex h-[80px] w-[92%] items-center justify-between sm:w-[88%] lg:w-[74%]">
         <div className="flex shrink-0 items-center">
-          <Link to="/" className="inline-flex items-center" aria-label="Rempa Home">
+          <Link to="/" className="inline-flex items-center" aria-label="Bariq Home">
             <img
               src={logo}
-              alt="repma"
+              alt="Bariq"
               className="h-32 w-36 object-contain sm:h-36 sm:w-40 lg:h-40 lg:w-48"
             />
           </Link>
@@ -42,7 +44,7 @@ export default function Header() {
             <Link
               key={link.label}
               to={link.to}
-              hash={link.hash}
+              hash={'hash' in link ? link.hash : undefined}
               className="text-[14px] font-medium text-gray-700 transition-colors hover:text-primary xl:text-[15px]"
             >
               {link.label}
@@ -53,14 +55,23 @@ export default function Header() {
         <div className="hidden items-center gap-3 lg:flex xl:gap-4">
           <button
             type="button"
+            onClick={() => setLocale(locale === 'ar' ? 'en' : 'ar')}
+            className="inline-flex h-8 items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-600 shadow-sm transition hover:bg-slate-50"
+            aria-label="Toggle language"
+          >
+            <span>{locale === 'ar' ? 'EN' : 'ع'}</span>
+          </button>
+
+          <button
+            type="button"
             className="inline-flex h-8 items-center gap-2 rounded-full border border-teal-100 bg-teal-50 px-3 text-sm font-semibold text-primary shadow-md transition hover:bg-teal-200 hover:text-white"
           >
             <img src={messageIcon} alt="message" className="h-4 w-4" />
-            دعم
+            {t.nav.support}
           </button>
 
           <Link to="/login" className="btn-gradient font-black inline-flex items-center justify-center">
-            ابدأ الآن
+            {t.nav.startNow}
           </Link>
         </div>
 
@@ -68,7 +79,7 @@ export default function Header() {
           type="button"
           onClick={() => setIsOpen((prev) => !prev)}
           className="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-border bg-white text-foreground transition hover:bg-muted lg:hidden"
-          aria-label={isOpen ? 'إغلاق القائمة' : 'فتح القائمة'}
+          aria-label={isOpen ? t.nav.closeMenu : t.nav.openMenu}
           aria-expanded={isOpen}
         >
           {isOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
@@ -77,7 +88,7 @@ export default function Header() {
 
       <div
         className={`overflow-hidden border-t border-border bg-white transition-all duration-300 lg:hidden ${
-          isOpen ? 'max-h-[420px] opacity-100' : 'max-h-0 opacity-0'
+          isOpen ? 'max-h-[480px] opacity-100' : 'max-h-0 opacity-0'
         }`}
       >
         <div className="mx-auto flex w-[92%] flex-col gap-2 py-4 sm:w-[88%]">
@@ -86,9 +97,9 @@ export default function Header() {
               <Link
                 key={link.label}
                 to={link.to}
-                hash={link.hash}
+                hash={'hash' in link ? link.hash : undefined}
                 onClick={() => setIsOpen(false)}
-                className="rounded-xl px-3 py-3 text-right text-[15px] font-medium text-foreground transition hover:bg-muted hover:text-primary"
+                className={`rounded-xl px-3 py-3 ${mobileTextAlign} text-[15px] font-medium text-foreground transition hover:bg-muted hover:text-primary`}
               >
                 {link.label}
               </Link>
@@ -98,14 +109,22 @@ export default function Header() {
           <div className="mt-2 flex flex-col gap-3">
             <button
               type="button"
+              onClick={() => setLocale(locale === 'ar' ? 'en' : 'ar')}
+              className="inline-flex h-11 items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-600 transition hover:bg-slate-50"
+            >
+              {locale === 'ar' ? 'Switch to English' : 'التبديل للعربية'}
+            </button>
+
+            <button
+              type="button"
               className="inline-flex h-11 items-center justify-center gap-2 rounded-full border border-teal-200 bg-teal-50 px-4 text-sm font-semibold text-primary shadow-sm transition hover:bg-teal-200 hover:text-white"
             >
               <img src={messageIcon} alt="message" className="h-4 w-4" />
-              دعم
+              {t.nav.support}
             </button>
 
             <Link to="/login" className="btn-gradient inline-flex items-center justify-center">
-              ابدأ الآن
+              {t.nav.startNow}
             </Link>
           </div>
         </div>

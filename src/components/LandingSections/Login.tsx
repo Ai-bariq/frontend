@@ -1,161 +1,26 @@
 import { useEffect, useMemo, useState } from 'react'
-import {
-  Clock3,
-  Eye,
-  EyeOff,
-  Shield,
-  Sparkles,
-  Star,
-  Bot,
-} from 'lucide-react'
+import { Clock3, Eye, EyeOff, Shield, Sparkles, Star, Bot } from 'lucide-react'
 import logo from '../../assets/logo.png'
 import googleImage from '../../assets/google.png'
 import avatar from '../../assets/avatar.png'
 import mapsImage from '../../assets/maps.png'
 import { loginUser, signupUser } from '../../services/authServices'
+import { useLocale } from '../../contexts/LocaleContext'
+import type { Locale } from '../../locales'
+
 const API_URL = import.meta.env.VITE_API_URL
+
 const handleGoogleAuth = () => {
   window.location.href = `${API_URL}/auth/google`
 }
+
 type AuthMode = 'login' | 'signup'
-
 type FormErrors = Record<string, string>
+type LoginForm = { email: string; password: string }
+type SignupForm = { fullName: string; email: string; phone: string; password: string }
 
-type LoginForm = {
-  email: string
-  password: string
-}
-
-type SignupForm = {
-  fullName: string
-  email: string
-  phone: string
-  password: string
-}
-
-const LOGIN_INITIAL: LoginForm = {
-  email: '',
-  password: '',
-}
-
-const SIGNUP_INITIAL: SignupForm = {
-  fullName: '',
-  email: '',
-  phone: '',
-  password: '',
-}
-
-const CONTENT = {
-  login: {
-    title: 'مرحباً بك في بريق',
-    submit: 'تسجيل الدخول',
-    switchPrompt: 'ليس لديك حساب؟',
-    switchAction: 'إنشاء حساب',
-    google: 'المتابعة مع جوجل',
-  },
-  signup: {
-    title: 'إنشاء حسابك',
-    submit: 'إنشاء حسابك',
-    switchPrompt: 'لديك حساب بالفعل؟',
-    switchAction: 'تسجيل الدخول',
-    google: 'المتابعة مع جوجل',
-  },
-  shared: {
-    divider: 'أو',
-    forgotPassword: 'نسيت كلمة المرور؟',
-    heroTitle: 'خلّي فهد يتولى تقييماتك',
-    heroBullets: [
-      'ردود تلقائية 24/7 باللهجة السعودية',
-      'جاهز خلال 5 دقائق',
-      '+50 نشاط تجاري يثق بنا',
-      'تشعُر بمستوى البنوك',
-    ],
-    heroFooter: 'انضم +50 نشاط تجاري في السعودية',
-    passwordHint: 'يجب أن تكون 8 أحرف على الأقل',
-    reviewTitle: 'تقييم جديد في خرائط جوجل',
-    reviewName: 'محمد الريحاني',
-    reviewText: 'الأكل لذيذ جداً والخدمة ممتازة 👏',
-    replyAuthor: 'فهد',
-    reviewReply:
-      'يا هلا فيك يا محمد، تسلم والله على كلماتك الطيبة 🙏 يسعدنا إن التجربة عجبتك وإن شاء الله دايم عند حسن ظنك. شكراً لثقتك فينا، ونسعد بخدمتك دائماً.',
-  },
-} as const
-
-const STYLES = {
-  page: 'min-h-screen bg-[#F4FAF8] px-4 py-8 sm:px-6 lg:px-8',
-  topLogoWrap: 'mb-8 flex justify-center',
-  topLogo: 'w-[80px] sm:w-[160px] lg:w-[180px] h-auto object-contain',
-  shell: 'mx-auto flex w-full max-w-[1180px] items-center justify-center',
-  layout:
-    'flex w-full flex-col items-center justify-center gap-10 lg:flex-row lg:items-start lg:gap-14',
-  heroWrap: 'hidden w-full max-w-[520px] lg:block',
-  formWrap: 'w-full max-w-[430px]',
-  heroTitle:
-    'text-right text-[34px] font-bold leading-[1.25] tracking-[-0.02em] text-slate-900',
-  heroBulletList: 'mt-5 flex flex-col gap-3',
-  heroBullet:
-    'flex items-center justify-start gap-3 text-right text-[16px] font-medium text-slate-700',
-  heroBulletIcon:
-    'flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#C9F3EA] text-[#0FA08E]',
-  heroFooter:
-    'mt-8 flex items-center justify-end gap-3 text-right text-[15px] text-slate-500',
-  heroFooterBadges: 'flex items-center gap-2',
-  heroFooterBadge:
-    'flex h-8 w-8 items-center justify-center rounded-full bg-[#A7EFE0] text-[13px] font-bold text-[#0E8E81]',
-  card:
-    'rounded-[22px] border border-slate-200/70 bg-white/90 p-6 shadow-[0_10px_30px_rgba(15,23,42,0.08)] backdrop-blur sm:p-8',
-  formTitle: 'text-right text-[34px] font-bold leading-none text-slate-900',
-  googleButton:
-    'mt-6 flex h-11 w-full items-center justify-center gap-3 rounded-[10px] border border-slate-200 bg-white px-4 text-[15px] font-medium text-slate-800 transition hover:bg-slate-50',
-  googleIcon: 'h-5 w-5 object-contain',
-  dividerWrap: 'my-4 flex items-center gap-4',
-  dividerLine: 'h-px flex-1 bg-slate-200',
-  dividerText: 'text-[13px] text-slate-400',
-  form: 'space-y-4',
-  fieldWrap: 'space-y-1.5',
-  label: 'block text-right text-[14px] font-bold text-slate-900',
-  inputWrap: 'relative',
-  input:
-    'h-11 w-full rounded-[10px] border border-slate-200 bg-white px-4 text-right text-[14px] text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-[#12A594] focus:ring-4 focus:ring-[#12A594]/10',
-  inputWithIcon: 'pl-11 pr-4',
-  prefixInput: 'pr-16 pl-4',
-  prefix:
-    'pointer-events-none absolute inset-y-0 right-0 flex items-center pr-4 text-[14px] text-slate-500',
-  leadingIcon: 'absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400',
-  errorText: 'text-right text-[12px] text-red-500',
-  helperText: 'text-right text-[12px] text-slate-400',
-  serverError:
-    'mb-4 rounded-lg bg-red-50 px-4 py-3 text-right text-sm text-red-600',
-  forgotWrap: 'flex justify-start',
-  forgotButton:
-    'text-[13px] font-medium text-[#14A595] transition hover:text-[#0E8E81]',
-  submit:
-    'mt-2 flex h-11 w-full items-center justify-center rounded-[10px] bg-[#159A8C] text-[15px] font-bold text-white transition hover:bg-[#13897d] disabled:cursor-not-allowed disabled:opacity-60',
-  secondaryAction: 'mt-4 flex flex-col items-center gap-3 text-center',
-  switchPrompt: 'text-[14px] text-slate-400',
-  switchButton:
-    'flex h-11 w-full items-center justify-center rounded-[10px] border border-slate-200 bg-white text-[15px] font-medium text-slate-800 transition hover:bg-slate-50',
-  previewCard:
-    'mt-8 overflow-hidden rounded-[18px] border border-slate-200 bg-white shadow-[0_10px_24px_rgba(15,23,42,0.06)]',
-  previewHeader:
-    'flex items-center justify-between border-b border-slate-100 bg-slate-50 px-4 py-3',
-  previewHeaderTitle: 'flex items-center gap-2 text-[13px] font-bold text-slate-700',
-  previewMapIcon: 'h-4 w-4 object-contain',
-  previewLive: 'flex items-center gap-1 text-[12px] font-medium text-emerald-600',
-  previewBody: 'space-y-4 p-4',
-  stars: 'flex items-center gap-1 text-[#F4B400]',
-  reviewName: 'text-right text-[15px] font-bold text-slate-900',
-  reviewText: 'text-right text-[14px] leading-7 text-slate-600',
-  replyBox:
-    'rounded-[14px] bg-[#F8FCFB] p-3 text-right ring-1 ring-[#DDF4EF] min-h-[180px]',
-  replyMeta: 'mb-3 flex items-start justify-between gap-2',
-  replyIdentity: 'flex items-center gap-2',
-  avatar: 'h-9 w-9 rounded-full object-cover ring-2 ring-white',
-  replyAuthor: 'text-[13px] font-bold text-slate-900',
-  aiBadge:
-    'rounded-md bg-[#C9F3EA] px-2 py-0.5 text-[11px] font-bold text-[#0E8E81]',
-  replyText: 'text-[14px] leading-7 text-slate-700 min-h-[112px]',
-} as const
+const LOGIN_INITIAL: LoginForm = { email: '', password: '' }
+const SIGNUP_INITIAL: SignupForm = { fullName: '', email: '', phone: '', password: '' }
 
 function validateEmail(value: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)
@@ -176,16 +41,11 @@ function useTypewriter(text: string, speed = 28) {
   useEffect(() => {
     let index = 0
     setDisplayed('')
-
     const interval = window.setInterval(() => {
       index += 1
       setDisplayed(text.slice(0, index))
-
-      if (index >= text.length) {
-        window.clearInterval(interval)
-      }
+      if (index >= text.length) window.clearInterval(interval)
     }, speed)
-
     return () => window.clearInterval(interval)
   }, [text, speed])
 
@@ -193,20 +53,26 @@ function useTypewriter(text: string, speed = 28) {
 }
 
 function HeroPanel() {
+  const { t, isRTL } = useLocale()
   const bulletIcons = [Bot, Clock3, Sparkles, Shield]
-  const typedReply = useTypewriter(CONTENT.shared.reviewReply, 24)
+  const typedReply = useTypewriter(t.login.shared.reviewReply, 24)
+  const textAlign = isRTL ? 'text-right' : 'text-left'
 
   return (
-    <div className={STYLES.heroWrap}>
-      <h1 className={STYLES.heroTitle}>{CONTENT.shared.heroTitle}</h1>
+    <div className="hidden w-full max-w-[520px] lg:block">
+      <h1 className={`${textAlign} text-[34px] font-bold leading-[1.25] tracking-[-0.02em] text-slate-900`}>
+        {t.login.shared.heroTitle}
+      </h1>
 
-      <div className={STYLES.heroBulletList}>
-        {CONTENT.shared.heroBullets.map((item, index) => {
+      <div className="mt-5 flex flex-col gap-3">
+        {t.login.shared.heroBullets.map((item, index) => {
           const Icon = bulletIcons[index]
-
           return (
-            <div key={item} className={STYLES.heroBullet}>
-              <span className={STYLES.heroBulletIcon}>
+            <div
+              key={item}
+              className={`flex items-center justify-start gap-3 ${textAlign} text-[16px] font-medium text-slate-700`}
+            >
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#C9F3EA] text-[#0FA08E]">
                 <Icon className="h-4 w-4" />
               </span>
               <span>{item}</span>
@@ -215,130 +81,121 @@ function HeroPanel() {
         })}
       </div>
 
-      <div className={STYLES.previewCard}>
-        <div className={STYLES.previewHeader}>
-          <div className={STYLES.previewHeaderTitle}>
-            <span>{CONTENT.shared.reviewTitle}</span>
-            <img src={mapsImage} alt="Google Maps" className={STYLES.previewMapIcon} />
+      <div className="mt-8 overflow-hidden rounded-[18px] border border-slate-200 bg-white shadow-[0_10px_24px_rgba(15,23,42,0.06)]">
+        <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50 px-4 py-3">
+          <div className="flex items-center gap-2 text-[13px] font-bold text-slate-700">
+            <span>{t.login.shared.reviewTitle}</span>
+            <img src={mapsImage} alt="Google Maps" className="h-4 w-4 object-contain" />
           </div>
-
-          <div className={STYLES.previewLive}>
-            <span>مباشر</span>
+          <div className="flex items-center gap-1 text-[12px] font-medium text-emerald-600">
+            <span>{t.login.shared.live}</span>
             <span className="h-2 w-2 rounded-full bg-emerald-500" />
           </div>
         </div>
 
-        <div className={STYLES.previewBody}>
-          <div className="flex items-start justify-between gap-4">
-            <div className="text-right">
-              <div className={STYLES.reviewName}>{CONTENT.shared.reviewName}</div>
-              <div className={STYLES.reviewText}>{CONTENT.shared.reviewText}</div>
+        <div className="space-y-4 p-4">
+          <div className={`flex items-start ${isRTL ? 'justify-between' : 'justify-between'} gap-4`}>
+            <div className={textAlign}>
+              <div className="text-[15px] font-bold text-slate-900">{t.login.shared.reviewName}</div>
+              <div className={`${textAlign} text-[14px] leading-7 text-slate-600`}>{t.login.shared.reviewText}</div>
             </div>
-
-            <div className={STYLES.stars}>
+            <div className="flex items-center gap-1 text-[#F4B400]">
               {Array.from({ length: 5 }).map((_, i) => (
                 <Star key={i} className="h-4 w-4 fill-current" />
               ))}
             </div>
           </div>
 
-          <div className={STYLES.replyBox}>
-            <div className={STYLES.replyMeta}>
-              <div className={STYLES.replyIdentity}>
-                <img src={avatar} alt="Fahd" className={STYLES.avatar} />
-
-                <div className="text-right">
-                  <div className={STYLES.replyAuthor}>
-                    {CONTENT.shared.replyAuthor}
-                  </div>
+          <div className={`rounded-[14px] bg-[#F8FCFB] p-3 ${textAlign} ring-1 ring-[#DDF4EF] min-h-[180px]`}>
+            <div className="mb-3 flex items-start justify-between gap-2">
+              <div className="flex items-center gap-2">
+                <img src={avatar} alt="AI" className="h-9 w-9 rounded-full object-cover ring-2 ring-white" />
+                <div className={textAlign}>
+                  <div className="text-[13px] font-bold text-slate-900">{t.login.shared.replyAuthor}</div>
                 </div>
               </div>
-
-              <span className={STYLES.aiBadge}>AI</span>
+              <span className="rounded-md bg-[#C9F3EA] px-2 py-0.5 text-[11px] font-bold text-[#0E8E81]">AI</span>
             </div>
-
-            <p className={STYLES.replyText}>{typedReply}</p>
+            <p className={`text-[14px] leading-7 text-slate-700 min-h-[112px] ${textAlign}`}>{typedReply}</p>
           </div>
         </div>
       </div>
 
-      <div className={STYLES.heroFooter}>
-        <div className={STYLES.heroFooterBadges}>
-          {['خ', 'ل', 'ي', 'ك'].map((char) => (
-            <span key={char} className={STYLES.heroFooterBadge}>
+      <div className={`mt-8 flex items-center ${isRTL ? 'justify-end' : 'justify-start'} gap-3 ${textAlign} text-[15px] text-slate-500`}>
+        <div className="flex items-center gap-2">
+          {['B', 'A', 'R', 'Q'].map((char) => (
+            <span
+              key={char}
+              className="flex h-8 w-8 items-center justify-center rounded-full bg-[#A7EFE0] text-[13px] font-bold text-[#0E8E81]"
+            >
               {char}
             </span>
           ))}
         </div>
-
-        <span>{CONTENT.shared.heroFooter}</span>
+        <span>{t.login.shared.heroFooter}</span>
       </div>
     </div>
   )
 }
 
-function GoogleButton({
-  text,
-  onClick,
-}: {
-  text: string
-  onClick: () => void
-}) {
+function GoogleButton({ text, onClick }: { text: string; onClick: () => void }) {
   return (
     <button
       type="button"
-      className={STYLES.googleButton}
+      className="mt-6 flex h-11 w-full items-center justify-center gap-3 rounded-[10px] border border-slate-200 bg-white px-4 text-[15px] font-medium text-slate-800 transition hover:bg-slate-50"
       onClick={onClick}
     >
-      <img src={googleImage} alt="Google" className={STYLES.googleIcon} />
+      <img src={googleImage} alt="Google" className="h-5 w-5 object-contain" />
       <span>{text}</span>
     </button>
   )
 }
+
 function PasswordField({
   label,
   value,
   onChange,
   error,
   hint,
+  isRTL,
 }: {
   label: string
   value: string
   onChange: (value: string) => void
   error?: string
   hint?: string
+  isRTL: boolean
 }) {
   const [show, setShow] = useState(false)
+  const textAlign = isRTL ? 'text-right' : 'text-left'
 
   return (
-    <div className={STYLES.fieldWrap}>
-      <label className={STYLES.label}>{label}</label>
-
-      <div className={STYLES.inputWrap}>
+    <div className="space-y-1.5">
+      <label className={`block ${textAlign} text-[14px] font-bold text-slate-900`}>{label}</label>
+      <div className="relative">
         <input
           type={show ? 'text' : 'password'}
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          className={`${STYLES.input} ${STYLES.inputWithIcon} ${
+          className={`h-11 w-full rounded-[10px] border border-slate-200 bg-white px-4 ${isRTL ? 'pl-11' : 'pr-11'} text-[14px] text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-[#12A594] focus:ring-4 focus:ring-[#12A594]/10 ${
             error ? 'border-red-300 focus:border-red-400 focus:ring-red-100' : ''
           }`}
           dir="ltr"
+          style={{ textAlign: isRTL ? 'right' : 'left' }}
         />
-
         <button
           type="button"
           onClick={() => setShow((prev) => !prev)}
-          className={STYLES.leadingIcon}
+          className={`absolute inset-y-0 ${isRTL ? 'left-0 pl-3' : 'right-0 pr-3'} flex items-center text-slate-400`}
           aria-label={show ? 'Hide password' : 'Show password'}
         >
           {show ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
         </button>
       </div>
-
       {error ? (
-        <p className={STYLES.errorText}>{error}</p>
+        <p className={`${textAlign} text-[12px] text-red-500`}>{error}</p>
       ) : hint ? (
-        <p className={STYLES.helperText}>{hint}</p>
+        <p className={`${textAlign} text-[12px] text-slate-400`}>{hint}</p>
       ) : null}
     </div>
   )
@@ -351,6 +208,7 @@ function TextField({
   placeholder,
   error,
   type = 'text',
+  isRTL,
 }: {
   label: string
   value: string
@@ -358,23 +216,24 @@ function TextField({
   placeholder?: string
   error?: string
   type?: 'text' | 'email'
+  isRTL: boolean
 }) {
+  const textAlign = isRTL ? 'text-right' : 'text-left'
   return (
-    <div className={STYLES.fieldWrap}>
-      <label className={STYLES.label}>{label}</label>
-
+    <div className="space-y-1.5">
+      <label className={`block ${textAlign} text-[14px] font-bold text-slate-900`}>{label}</label>
       <input
         type={type}
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        className={`${STYLES.input} ${
+        className={`h-11 w-full rounded-[10px] border border-slate-200 bg-white px-4 text-[14px] text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-[#12A594] focus:ring-4 focus:ring-[#12A594]/10 ${
           error ? 'border-red-300 focus:border-red-400 focus:ring-red-100' : ''
         }`}
-        dir={type === 'email' ? 'ltr' : 'rtl'}
+        dir={type === 'email' ? 'ltr' : undefined}
+        style={{ textAlign: type === 'email' ? 'left' : isRTL ? 'right' : 'left' }}
       />
-
-      {error ? <p className={STYLES.errorText}>{error}</p> : null}
+      {error ? <p className={`${textAlign} text-[12px] text-red-500`}>{error}</p> : null}
     </div>
   )
 }
@@ -384,39 +243,43 @@ function PhoneField({
   value,
   onChange,
   error,
+  isRTL,
 }: {
   label: string
   value: string
   onChange: (value: string) => void
   error?: string
+  isRTL: boolean
 }) {
   const normalized = value.replace(/\D/g, '').slice(0, 9)
+  const textAlign = isRTL ? 'text-right' : 'text-left'
 
   return (
-    <div className={STYLES.fieldWrap}>
-      <label className={STYLES.label}>{label}</label>
-
-      <div className={STYLES.inputWrap}>
-        <span className={STYLES.prefix}>966+</span>
-
+    <div className="space-y-1.5">
+      <label className={`block ${textAlign} text-[14px] font-bold text-slate-900`}>{label}</label>
+      <div className="relative">
+        <span className={`pointer-events-none absolute inset-y-0 ${isRTL ? 'right-0 pr-4' : 'left-0 pl-4'} flex items-center text-[14px] text-slate-500`}>
+          +966
+        </span>
         <input
           type="tel"
           value={normalized}
           onChange={(e) => onChange(e.target.value.replace(/\D/g, '').slice(0, 9))}
           placeholder="5X XXX XXXX"
-          className={`${STYLES.input} ${STYLES.prefixInput} ${
-            error ? 'border-red-300 focus:border-red-400 focus:ring-red-100' : ''
-          }`}
+          className={`h-11 w-full rounded-[10px] border border-slate-200 bg-white text-[14px] text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-[#12A594] focus:ring-4 focus:ring-[#12A594]/10 ${
+            isRTL ? 'pr-16 pl-4' : 'pl-16 pr-4'
+          } ${error ? 'border-red-300 focus:border-red-400 focus:ring-red-100' : ''}`}
           dir="ltr"
         />
       </div>
-
-      {error ? <p className={STYLES.errorText}>{error}</p> : null}
+      {error ? <p className={`${textAlign} text-[12px] text-red-500`}>{error}</p> : null}
     </div>
   )
 }
 
 export default function LoginPage() {
+  const { t, dir, isRTL, locale, setLocale } = useLocale()
+  const toggleLocale = () => setLocale((locale === 'ar' ? 'en' : 'ar') as Locale)
   const [mode, setMode] = useState<AuthMode>('signup')
   const [loginForm, setLoginForm] = useState<LoginForm>(LOGIN_INITIAL)
   const [signupForm, setSignupForm] = useState<SignupForm>(SIGNUP_INITIAL)
@@ -426,77 +289,49 @@ export default function LoginPage() {
   const [serverError, setServerError] = useState('')
 
   const activeContent = useMemo(
-    () => (mode === 'login' ? CONTENT.login : CONTENT.signup),
-    [mode]
+    () => (mode === 'login' ? t.login.modes.login : t.login.modes.signup),
+    [mode, t]
   )
+
+  const textAlign = isRTL ? 'text-right' : 'text-left'
 
   const validateLogin = () => {
     const errors: FormErrors = {}
-
-    if (!loginForm.email.trim()) {
-      errors.email = 'البريد الإلكتروني مطلوب'
-    } else if (!validateEmail(loginForm.email)) {
-      errors.email = 'أدخل بريدًا إلكترونيًا صحيحًا'
-    }
-
-    if (!loginForm.password.trim()) {
-      errors.password = 'كلمة المرور مطلوبة'
-    } else if (!validatePassword(loginForm.password)) {
-      errors.password = 'كلمة المرور يجب أن تكون 8 أحرف على الأقل'
-    }
-
+    if (!loginForm.email.trim()) errors.email = t.login.errors.emailRequired
+    else if (!validateEmail(loginForm.email)) errors.email = t.login.errors.emailInvalid
+    if (!loginForm.password.trim()) errors.password = t.login.errors.passwordRequired
+    else if (!validatePassword(loginForm.password)) errors.password = t.login.errors.passwordMinLength
     setLoginErrors(errors)
     return Object.keys(errors).length === 0
   }
 
   const validateSignup = () => {
     const errors: FormErrors = {}
-
-    if (!signupForm.fullName.trim()) {
-      errors.fullName = 'الاسم الكامل مطلوب'
-    } else if (signupForm.fullName.trim().length < 3) {
-      errors.fullName = 'الاسم الكامل قصير جدًا'
-    }
-
-    if (!signupForm.email.trim()) {
-      errors.email = 'البريد الإلكتروني مطلوب'
-    } else if (!validateEmail(signupForm.email)) {
-      errors.email = 'أدخل بريدًا إلكترونيًا صحيحًا'
-    }
-
-    if (!signupForm.phone.trim()) {
-      errors.phone = 'رقم الجوال مطلوب'
-    } else if (!validatePhone(signupForm.phone)) {
-      errors.phone = 'أدخل رقم جوال سعودي صحيح يبدأ بـ 5'
-    }
-
-    if (!signupForm.password.trim()) {
-      errors.password = 'كلمة المرور مطلوبة'
-    } else if (!validatePassword(signupForm.password)) {
-      errors.password = 'كلمة المرور يجب أن تكون 8 أحرف على الأقل'
-    }
-
+    if (!signupForm.fullName.trim()) errors.fullName = t.login.errors.fullNameRequired
+    else if (signupForm.fullName.trim().length < 3) errors.fullName = t.login.errors.fullNameShort
+    if (!signupForm.email.trim()) errors.email = t.login.errors.emailRequired
+    else if (!validateEmail(signupForm.email)) errors.email = t.login.errors.emailInvalid
+    if (!signupForm.phone.trim()) errors.phone = t.login.errors.phoneRequired
+    else if (!validatePhone(signupForm.phone)) errors.phone = t.login.errors.phoneInvalid
+    if (!signupForm.password.trim()) errors.password = t.login.errors.passwordRequired
+    else if (!validatePassword(signupForm.password)) errors.password = t.login.errors.passwordMinLength
     setSignupErrors(errors)
     return Object.keys(errors).length === 0
   }
 
   const handleLoginSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-
     if (!validateLogin()) return
-
     try {
       setIsSubmitting(true)
       setServerError('')
-
       const response: any = await loginUser(loginForm)
-
-     localStorage.setItem('token', response.data.accessToken)
-localStorage.setItem('user', JSON.stringify(response.data.user))
-
-      window.location.href = '/ClientDashboard'
+      localStorage.setItem('token', response.data.accessToken)
+      localStorage.setItem('user', JSON.stringify(response.data.user))
+      const role = response.data.user?.role
+      window.location.href = (role === 'admin' || role === 'superAdmin') ? '/AdminDashboard' : '/ClientDashboard'
     } catch (error) {
-      setServerError(error instanceof Error ? error.message : 'فشل تسجيل الدخول')
+      setServerError(error instanceof Error ? error.message : t.login.errors.loginFailed)
     } finally {
       setIsSubmitting(false)
     }
@@ -504,28 +339,23 @@ localStorage.setItem('user', JSON.stringify(response.data.user))
 
   const handleSignupSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-
     if (!validateSignup()) return
-
     try {
       setIsSubmitting(true)
       setServerError('')
-
       const payload = {
         name: signupForm.fullName,
         email: signupForm.email,
         phone: `+966${signupForm.phone.replace(/\D/g, '')}`,
         password: signupForm.password,
       }
-
       const response: any = await signupUser(payload)
-
       localStorage.setItem('token', response.data.accessToken)
-localStorage.setItem('user', JSON.stringify(response.data.user))
-
-      window.location.href = '/ClientDashboard'
+      localStorage.setItem('user', JSON.stringify(response.data.user))
+      const role = response.data.user?.role
+      window.location.href = (role === 'admin' || role === 'superAdmin') ? '/AdminDashboard' : '/ClientDashboard'
     } catch (error) {
-      setServerError(error instanceof Error ? error.message : 'فشل إنشاء الحساب')
+      setServerError(error instanceof Error ? error.message : t.login.errors.signupFailed)
     } finally {
       setIsSubmitting(false)
     }
@@ -539,130 +369,125 @@ localStorage.setItem('user', JSON.stringify(response.data.user))
   }
 
   return (
-    <section dir="rtl" className={STYLES.page}>
-      <div className={STYLES.topLogoWrap}>
-        <img src={logo} alt="Bariq AI" className={STYLES.topLogo} />
+    <section dir={dir} className="min-h-screen bg-[#F4FAF8] px-4 py-8 sm:px-6 lg:px-8">
+      <div className="mb-8 flex items-center justify-center gap-4">
+        <img src={logo} alt="Bariq AI" className="w-[80px] sm:w-[160px] lg:w-[180px] h-auto object-contain" />
+        <button
+          type="button"
+          onClick={toggleLocale}
+          className="inline-flex h-9 items-center justify-center rounded-lg border border-slate-200 bg-white px-3 text-xs font-bold text-slate-600 shadow-sm transition hover:bg-slate-50"
+        >
+          {locale === 'ar' ? 'EN' : 'ع'}
+        </button>
       </div>
 
-      <div className={STYLES.shell}>
+      <div className="mx-auto flex w-full max-w-[1180px] items-center justify-center">
         <div
-          className={`${STYLES.layout} ${
+          className={`flex w-full flex-col items-center justify-center gap-10 lg:flex-row lg:items-start lg:gap-14 ${
             mode === 'login' ? 'lg:justify-center' : 'lg:justify-between'
           }`}
         >
-          <div className={STYLES.formWrap}>
-            <div className={STYLES.card}>
-              <h2 className={STYLES.formTitle}>{activeContent.title}</h2>
+          {/* Form */}
+          <div className="w-full max-w-[430px]">
+            <div className="rounded-[22px] border border-slate-200/70 bg-white/90 p-6 shadow-[0_10px_30px_rgba(15,23,42,0.08)] backdrop-blur sm:p-8">
+              <h2 className={`${textAlign} text-[34px] font-bold leading-none text-slate-900`}>
+                {activeContent.title}
+              </h2>
 
-              <GoogleButton
-  text={activeContent.google}
-  onClick={handleGoogleAuth}
-/>
+              <GoogleButton text={activeContent.google} onClick={handleGoogleAuth} />
 
-              <div className={STYLES.dividerWrap}>
-                <div className={STYLES.dividerLine} />
-                <span className={STYLES.dividerText}>{CONTENT.shared.divider}</span>
-                <div className={STYLES.dividerLine} />
+              <div className="my-4 flex items-center gap-4">
+                <div className="h-px flex-1 bg-slate-200" />
+                <span className="text-[13px] text-slate-400">{t.login.shared.divider}</span>
+                <div className="h-px flex-1 bg-slate-200" />
               </div>
 
               {serverError ? (
-                <p className={STYLES.serverError}>{serverError}</p>
+                <p className={`mb-4 rounded-lg bg-red-50 px-4 py-3 ${textAlign} text-sm text-red-600`}>
+                  {serverError}
+                </p>
               ) : null}
 
               {mode === 'login' ? (
-                <form className={STYLES.form} onSubmit={handleLoginSubmit} noValidate>
+                <form className="space-y-4" onSubmit={handleLoginSubmit} noValidate>
                   <TextField
-                    label="البريد الإلكتروني"
+                    label={t.login.fields.email}
                     type="email"
                     value={loginForm.email}
-                    onChange={(value) =>
-                      setLoginForm((prev) => ({ ...prev, email: value }))
-                    }
-                    placeholder="you@example.com"
+                    onChange={(value) => setLoginForm((prev) => ({ ...prev, email: value }))}
+                    placeholder={t.login.fields.emailPlaceholder}
                     error={loginErrors.email}
+                    isRTL={isRTL}
                   />
-
                   <PasswordField
-                    label="كلمة المرور"
+                    label={t.login.fields.password}
                     value={loginForm.password}
-                    onChange={(value) =>
-                      setLoginForm((prev) => ({ ...prev, password: value }))
-                    }
+                    onChange={(value) => setLoginForm((prev) => ({ ...prev, password: value }))}
                     error={loginErrors.password}
+                    isRTL={isRTL}
                   />
-
-                  <div className={STYLES.forgotWrap}>
-                    <button type="button" className={STYLES.forgotButton}>
-                      {CONTENT.shared.forgotPassword}
+                  <div className={`flex ${isRTL ? 'justify-start' : 'justify-end'}`}>
+                    <button type="button" className="text-[13px] font-medium text-[#14A595] transition hover:text-[#0E8E81]">
+                      {t.login.shared.forgotPassword}
                     </button>
                   </div>
-
                   <button
                     type="submit"
-                    className={STYLES.submit}
+                    className="mt-2 flex h-11 w-full items-center justify-center rounded-[10px] bg-[#159A8C] text-[15px] font-bold text-white transition hover:bg-[#13897d] disabled:cursor-not-allowed disabled:opacity-60"
                     disabled={isSubmitting}
                   >
-                    {isSubmitting ? 'جاري الإرسال...' : CONTENT.login.submit}
+                    {isSubmitting ? t.login.shared.submitting : activeContent.submit}
                   </button>
                 </form>
               ) : (
-                <form className={STYLES.form} onSubmit={handleSignupSubmit} noValidate>
+                <form className="space-y-4" onSubmit={handleSignupSubmit} noValidate>
                   <TextField
-                    label="الاسم الكامل"
+                    label={t.login.fields.fullName}
                     value={signupForm.fullName}
-                    onChange={(value) =>
-                      setSignupForm((prev) => ({ ...prev, fullName: value }))
-                    }
-                    placeholder="أدخل اسمك الكامل"
+                    onChange={(value) => setSignupForm((prev) => ({ ...prev, fullName: value }))}
+                    placeholder={t.login.fields.namePlaceholder}
                     error={signupErrors.fullName}
+                    isRTL={isRTL}
                   />
-
                   <TextField
-                    label="البريد الإلكتروني"
+                    label={t.login.fields.email}
                     type="email"
                     value={signupForm.email}
-                    onChange={(value) =>
-                      setSignupForm((prev) => ({ ...prev, email: value }))
-                    }
-                    placeholder="you@example.com"
+                    onChange={(value) => setSignupForm((prev) => ({ ...prev, email: value }))}
+                    placeholder={t.login.fields.emailPlaceholder}
                     error={signupErrors.email}
+                    isRTL={isRTL}
                   />
-
                   <PhoneField
-                    label="رقم الجوال"
+                    label={t.login.fields.phone}
                     value={signupForm.phone}
-                    onChange={(value) =>
-                      setSignupForm((prev) => ({ ...prev, phone: value }))
-                    }
+                    onChange={(value) => setSignupForm((prev) => ({ ...prev, phone: value }))}
                     error={signupErrors.phone}
+                    isRTL={isRTL}
                   />
-
                   <PasswordField
-                    label="كلمة المرور"
+                    label={t.login.fields.password}
                     value={signupForm.password}
-                    onChange={(value) =>
-                      setSignupForm((prev) => ({ ...prev, password: value }))
-                    }
+                    onChange={(value) => setSignupForm((prev) => ({ ...prev, password: value }))}
                     error={signupErrors.password}
-                    hint={CONTENT.shared.passwordHint}
+                    hint={t.login.shared.passwordHint}
+                    isRTL={isRTL}
                   />
-
                   <button
                     type="submit"
-                    className={STYLES.submit}
+                    className="mt-2 flex h-11 w-full items-center justify-center rounded-[10px] bg-[#159A8C] text-[15px] font-bold text-white transition hover:bg-[#13897d] disabled:cursor-not-allowed disabled:opacity-60"
                     disabled={isSubmitting}
                   >
-                    {isSubmitting ? 'جاري الإرسال...' : CONTENT.signup.submit}
+                    {isSubmitting ? t.login.shared.submitting : activeContent.submit}
                   </button>
                 </form>
               )}
 
-              <div className={STYLES.secondaryAction}>
-                <p className={STYLES.switchPrompt}>{activeContent.switchPrompt}</p>
-
+              <div className="mt-4 flex flex-col items-center gap-3 text-center">
+                <p className="text-[14px] text-slate-400">{activeContent.switchPrompt}</p>
                 <button
                   type="button"
-                  className={STYLES.switchButton}
+                  className="flex h-11 w-full items-center justify-center rounded-[10px] border border-slate-200 bg-white text-[15px] font-medium text-slate-800 transition hover:bg-slate-50"
                   onClick={handleModeSwitch}
                   disabled={isSubmitting}
                 >

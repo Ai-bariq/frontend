@@ -9,6 +9,7 @@ import {
 } from '@tanstack/react-router'
 import type { RouterAppContext } from '../router'
 import '../styles.css'
+import { LocaleProvider, useLocale } from '../contexts/LocaleContext'
 
 export const Route = createRootRouteWithContext<RouterAppContext>()({
   head: () => ({
@@ -22,16 +23,25 @@ export const Route = createRootRouteWithContext<RouterAppContext>()({
   component: RootLayout,
 })
 
+function AppShell() {
+  const { dir } = useLocale()
+  return (
+    <div
+      dir={dir}
+      className="min-h-screen flex flex-col bg-background text-foreground font-sans"
+    >
+      <Outlet />
+    </div>
+  )
+}
+
 function RootLayout() {
   return (
     <>
       <HeadContent />
-      <div
-        dir="rtl"
-        className="min-h-screen flex flex-col bg-background text-foreground font-sans"
-      >
-        <Outlet />
-      </div>
+      <LocaleProvider>
+        <AppShell />
+      </LocaleProvider>
       <Scripts />
     </>
   )

@@ -2,16 +2,16 @@ import { Link, useRouterState } from '@tanstack/react-router'
 import {
   Building2,
   LayoutDashboard,
-  MessageSquareText,
+  PanelLeftClose,
+  PanelLeftOpen,
   PanelRightClose,
   PanelRightOpen,
   Settings,
   ShieldCheck,
   SquarePen,
-  Star,
   Trash2,
-  Users,
 } from 'lucide-react'
+import { useLocale } from '../../contexts/LocaleContext'
 
 type AdminSidebarProps = {
   isOpen: boolean
@@ -20,43 +20,35 @@ type AdminSidebarProps = {
   onToggleCollapsed?: () => void
 }
 
-const navItems = [
-  {
-    label: 'الرئيسية',
-    to: '/AdminDashboard/AdminHome',
-    icon: LayoutDashboard,
-  },
-  {
-    label: 'العملاء',
-    to: '/AdminDashboard/clients',
-    icon: Building2,
-  },
-  {
-    label: 'الردود المعدلة',
-    to: '/AdminDashboard/EditiedResponse',
-    icon: SquarePen,
-  },
-  {
-    label: 'الردود المحذوفة',
-    to: '/AdminDashboard/DeletedResponse',
-    icon: Trash2,
-  },
-  {
-    label: 'الإعدادات',
-    to: '/AdminDashboard/AdminSettings',
-    icon: Settings,
-  },
-] as const
-
 export default function AdminSidebar({
   isOpen,
   onClose,
   collapsed = false,
   onToggleCollapsed,
 }: AdminSidebarProps) {
+  const { t, isRTL } = useLocale()
   const pathname = useRouterState({
     select: (state) => state.location.pathname,
   })
+
+  const navItems = [
+    { label: t.adminSidebar.nav.home, to: '/AdminDashboard/AdminHome', icon: LayoutDashboard },
+    { label: t.adminSidebar.nav.clients, to: '/AdminDashboard/clients', icon: Building2 },
+    { label: t.adminSidebar.nav.editedResponses, to: '/AdminDashboard/EditiedResponse', icon: SquarePen },
+    { label: t.adminSidebar.nav.deletedResponses, to: '/AdminDashboard/DeletedResponse', icon: Trash2 },
+    { label: t.adminSidebar.nav.settings, to: '/AdminDashboard/AdminSettings', icon: Settings },
+  ] as const
+
+  // LTR: sidebar anchors to the left; RTL: anchors to the right
+  const sideAnchor = isRTL ? 'right-0' : 'left-0'
+  const border = isRTL ? 'border-l' : 'border-r'
+  const translateOut = isRTL ? 'translate-x-full' : '-translate-x-full'
+  const textAlign = isRTL ? 'text-right' : 'text-left'
+
+  // Toggle icons: swap open/close sides for LTR
+  const CollapseIcon = isRTL
+    ? (collapsed ? PanelRightOpen : PanelRightClose)
+    : (collapsed ? PanelLeftOpen : PanelLeftClose)
 
   return (
     <>
@@ -68,11 +60,10 @@ export default function AdminSidebar({
       />
 
       <aside
-        dir="rtl"
-        className={`fixed bottom-0 right-0 top-20 z-50 border-l border-slate-200 bg-white transition-all duration-300 ${
+        className={`fixed bottom-0 ${sideAnchor} top-20 z-50 ${border} border-slate-200 bg-white transition-all duration-300 ${
           collapsed ? 'w-[88px]' : 'w-[280px]'
         } ${
-          isOpen ? 'translate-x-0' : 'translate-x-full'
+          isOpen ? 'translate-x-0' : translateOut
         } lg:translate-x-0`}
       >
         <div className="flex h-full flex-col">
@@ -81,21 +72,15 @@ export default function AdminSidebar({
               type="button"
               onClick={onToggleCollapsed}
               className="hidden h-10 w-10 items-center justify-center rounded-xl border border-slate-200 text-slate-600 transition hover:bg-slate-50 lg:inline-flex"
-              aria-label="تغيير عرض الشريط الجانبي"
+              aria-label={t.adminSidebar.toggleLabel}
             >
-              {collapsed ? (
-                <PanelRightOpen className="h-4 w-4" />
-              ) : (
-                <PanelRightClose className="h-4 w-4" />
-              )}
+              <CollapseIcon className="h-4 w-4" />
             </button>
 
             {!collapsed && (
-              <div className="text-right">
-                <p className="text-sm font-extrabold text-slate-900">لوحة الإدارة</p>
-                <p className="mt-1 text-xs text-slate-500">
-                  إدارة التقييمات والردود وبيانات العملاء
-                </p>
+              <div className={textAlign}>
+                <p className="text-sm font-extrabold text-slate-900">{t.adminSidebar.title}</p>
+                <p className="mt-1 text-xs text-slate-500">{t.adminSidebar.subtitle}</p>
               </div>
             )}
           </div>
@@ -103,9 +88,7 @@ export default function AdminSidebar({
           <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-4">
             {navItems.map((item) => {
               const Icon = item.icon
-
-              const isActive =
-                pathname === item.to || pathname.startsWith(`${item.to}/`)
+              const isActive = pathname === item.to || pathname.startsWith(`${item.to}/`)
 
               return (
                 <Link
@@ -129,12 +112,12 @@ export default function AdminSidebar({
           <div className="border-t border-slate-200 p-3">
             <div className="rounded-2xl bg-slate-50 p-3">
               {!collapsed ? (
-                <div className="text-right">
-                  <p className="text-xs font-extrabold text-slate-900">صلاحيات الإدارة</p>
+                <div className={textAlign}>
+                  <p className="text-xs font-extrabold text-slate-900">{t.adminSidebar.permissions}</p>
                   <p className="mt-1 text-xs leading-6 text-slate-500">
-                    عرض وتعديل وحذف ردود الذكاء الاصطناعي، مع الوصول إلى
-                    التقييمات وبيانات المراجعين ونصوص المراجعات وبيانات نشاط
-                    العميل.
+                    {isRTL
+                      ? 'عرض وتعديل وحذف ردود الذكاء الاصطناعي، مع الوصول إلى التقييمات وبيانات المراجعين ونصوص المراجعات وبيانات نشاط العميل.'
+                      : 'View, edit, and delete AI responses with access to reviews, reviewer data, review text, and client activity data.'}
                   </p>
                 </div>
               ) : (
