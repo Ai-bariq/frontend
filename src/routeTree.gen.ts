@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SubscribeRouteImport } from './routes/subscribe'
 import { Route as CheckoutRouteImport } from './routes/checkout'
+import { Route as VerifyEmailRouteImport } from './routes/VerifyEmail'
 import { Route as RegisterRouteImport } from './routes/Register'
 import { Route as LoginRouteImport } from './routes/Login'
 import { Route as TermsRouteRouteImport } from './routes/terms/route'
@@ -21,13 +22,13 @@ import { Route as AdminDashboardRouteRouteImport } from './routes/AdminDashboard
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ClientDashboardIndexRouteImport } from './routes/ClientDashboard/index'
 import { Route as AdminDashboardIndexRouteImport } from './routes/AdminDashboard/index'
+import { Route as ZernioCompleteRouteImport } from './routes/zernio/complete'
 import { Route as PaymentResultRouteImport } from './routes/payment/result'
 import { Route as OauthSuccessRouteImport } from './routes/oauth/success'
 import { Route as ClientDashboardSettingsRouteImport } from './routes/ClientDashboard/Settings'
 import { Route as ClientDashboardReviewsRouteImport } from './routes/ClientDashboard/Reviews'
 import { Route as ClientDashboardLocationsRouteImport } from './routes/ClientDashboard/Locations'
 import { Route as ClientDashboardBillingRouteImport } from './routes/ClientDashboard/Billing'
-import { Route as ClientDashboardAnalyticsRouteImport } from './routes/ClientDashboard/Analytics'
 import { Route as ClientDashboardAgentsRouteImport } from './routes/ClientDashboard/Agents'
 import { Route as ClientDashboardAccountsRouteImport } from './routes/ClientDashboard/Accounts'
 import { Route as AdminDashboardEditiedResponseRouteImport } from './routes/AdminDashboard/EditiedResponse'
@@ -46,6 +47,11 @@ const SubscribeRoute = SubscribeRouteImport.update({
 const CheckoutRoute = CheckoutRouteImport.update({
   id: '/checkout',
   path: '/checkout',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const VerifyEmailRoute = VerifyEmailRouteImport.update({
+  id: '/VerifyEmail',
+  path: '/VerifyEmail',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RegisterRoute = RegisterRouteImport.update({
@@ -98,6 +104,11 @@ const AdminDashboardIndexRoute = AdminDashboardIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AdminDashboardRouteRoute,
 } as any)
+const ZernioCompleteRoute = ZernioCompleteRouteImport.update({
+  id: '/zernio/complete',
+  path: '/zernio/complete',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PaymentResultRoute = PaymentResultRouteImport.update({
   id: '/payment/result',
   path: '/payment/result',
@@ -129,12 +140,6 @@ const ClientDashboardBillingRoute = ClientDashboardBillingRouteImport.update({
   path: '/Billing',
   getParentRoute: () => ClientDashboardRouteRoute,
 } as any)
-const ClientDashboardAnalyticsRoute =
-  ClientDashboardAnalyticsRouteImport.update({
-    id: '/Analytics',
-    path: '/Analytics',
-    getParentRoute: () => ClientDashboardRouteRoute,
-  } as any)
 const ClientDashboardAgentsRoute = ClientDashboardAgentsRouteImport.update({
   id: '/Agents',
   path: '/Agents',
@@ -193,6 +198,7 @@ export interface FileRoutesByFullPath {
   '/terms': typeof TermsRouteRoute
   '/Login': typeof LoginRoute
   '/Register': typeof RegisterRoute
+  '/VerifyEmail': typeof VerifyEmailRoute
   '/checkout': typeof CheckoutRoute
   '/subscribe': typeof SubscribeRoute
   '/AdminDashboard/AdminHome': typeof AdminDashboardAdminHomeRoute
@@ -204,13 +210,13 @@ export interface FileRoutesByFullPath {
   '/AdminDashboard/EditiedResponse': typeof AdminDashboardEditiedResponseRoute
   '/ClientDashboard/Accounts': typeof ClientDashboardAccountsRoute
   '/ClientDashboard/Agents': typeof ClientDashboardAgentsRoute
-  '/ClientDashboard/Analytics': typeof ClientDashboardAnalyticsRoute
   '/ClientDashboard/Billing': typeof ClientDashboardBillingRoute
   '/ClientDashboard/Locations': typeof ClientDashboardLocationsRoute
   '/ClientDashboard/Reviews': typeof ClientDashboardReviewsRoute
   '/ClientDashboard/Settings': typeof ClientDashboardSettingsRoute
   '/oauth/success': typeof OauthSuccessRoute
   '/payment/result': typeof PaymentResultRoute
+  '/zernio/complete': typeof ZernioCompleteRoute
   '/AdminDashboard/': typeof AdminDashboardIndexRoute
   '/ClientDashboard/': typeof ClientDashboardIndexRoute
 }
@@ -221,6 +227,7 @@ export interface FileRoutesByTo {
   '/terms': typeof TermsRouteRoute
   '/Login': typeof LoginRoute
   '/Register': typeof RegisterRoute
+  '/VerifyEmail': typeof VerifyEmailRoute
   '/checkout': typeof CheckoutRoute
   '/subscribe': typeof SubscribeRoute
   '/AdminDashboard/AdminHome': typeof AdminDashboardAdminHomeRoute
@@ -232,13 +239,13 @@ export interface FileRoutesByTo {
   '/AdminDashboard/EditiedResponse': typeof AdminDashboardEditiedResponseRoute
   '/ClientDashboard/Accounts': typeof ClientDashboardAccountsRoute
   '/ClientDashboard/Agents': typeof ClientDashboardAgentsRoute
-  '/ClientDashboard/Analytics': typeof ClientDashboardAnalyticsRoute
   '/ClientDashboard/Billing': typeof ClientDashboardBillingRoute
   '/ClientDashboard/Locations': typeof ClientDashboardLocationsRoute
   '/ClientDashboard/Reviews': typeof ClientDashboardReviewsRoute
   '/ClientDashboard/Settings': typeof ClientDashboardSettingsRoute
   '/oauth/success': typeof OauthSuccessRoute
   '/payment/result': typeof PaymentResultRoute
+  '/zernio/complete': typeof ZernioCompleteRoute
   '/AdminDashboard': typeof AdminDashboardIndexRoute
   '/ClientDashboard': typeof ClientDashboardIndexRoute
 }
@@ -252,6 +259,7 @@ export interface FileRoutesById {
   '/terms': typeof TermsRouteRoute
   '/Login': typeof LoginRoute
   '/Register': typeof RegisterRoute
+  '/VerifyEmail': typeof VerifyEmailRoute
   '/checkout': typeof CheckoutRoute
   '/subscribe': typeof SubscribeRoute
   '/AdminDashboard/AdminHome': typeof AdminDashboardAdminHomeRoute
@@ -263,13 +271,13 @@ export interface FileRoutesById {
   '/AdminDashboard/EditiedResponse': typeof AdminDashboardEditiedResponseRoute
   '/ClientDashboard/Accounts': typeof ClientDashboardAccountsRoute
   '/ClientDashboard/Agents': typeof ClientDashboardAgentsRoute
-  '/ClientDashboard/Analytics': typeof ClientDashboardAnalyticsRoute
   '/ClientDashboard/Billing': typeof ClientDashboardBillingRoute
   '/ClientDashboard/Locations': typeof ClientDashboardLocationsRoute
   '/ClientDashboard/Reviews': typeof ClientDashboardReviewsRoute
   '/ClientDashboard/Settings': typeof ClientDashboardSettingsRoute
   '/oauth/success': typeof OauthSuccessRoute
   '/payment/result': typeof PaymentResultRoute
+  '/zernio/complete': typeof ZernioCompleteRoute
   '/AdminDashboard/': typeof AdminDashboardIndexRoute
   '/ClientDashboard/': typeof ClientDashboardIndexRoute
 }
@@ -284,6 +292,7 @@ export interface FileRouteTypes {
     | '/terms'
     | '/Login'
     | '/Register'
+    | '/VerifyEmail'
     | '/checkout'
     | '/subscribe'
     | '/AdminDashboard/AdminHome'
@@ -295,13 +304,13 @@ export interface FileRouteTypes {
     | '/AdminDashboard/EditiedResponse'
     | '/ClientDashboard/Accounts'
     | '/ClientDashboard/Agents'
-    | '/ClientDashboard/Analytics'
     | '/ClientDashboard/Billing'
     | '/ClientDashboard/Locations'
     | '/ClientDashboard/Reviews'
     | '/ClientDashboard/Settings'
     | '/oauth/success'
     | '/payment/result'
+    | '/zernio/complete'
     | '/AdminDashboard/'
     | '/ClientDashboard/'
   fileRoutesByTo: FileRoutesByTo
@@ -312,6 +321,7 @@ export interface FileRouteTypes {
     | '/terms'
     | '/Login'
     | '/Register'
+    | '/VerifyEmail'
     | '/checkout'
     | '/subscribe'
     | '/AdminDashboard/AdminHome'
@@ -323,13 +333,13 @@ export interface FileRouteTypes {
     | '/AdminDashboard/EditiedResponse'
     | '/ClientDashboard/Accounts'
     | '/ClientDashboard/Agents'
-    | '/ClientDashboard/Analytics'
     | '/ClientDashboard/Billing'
     | '/ClientDashboard/Locations'
     | '/ClientDashboard/Reviews'
     | '/ClientDashboard/Settings'
     | '/oauth/success'
     | '/payment/result'
+    | '/zernio/complete'
     | '/AdminDashboard'
     | '/ClientDashboard'
   id:
@@ -342,6 +352,7 @@ export interface FileRouteTypes {
     | '/terms'
     | '/Login'
     | '/Register'
+    | '/VerifyEmail'
     | '/checkout'
     | '/subscribe'
     | '/AdminDashboard/AdminHome'
@@ -353,13 +364,13 @@ export interface FileRouteTypes {
     | '/AdminDashboard/EditiedResponse'
     | '/ClientDashboard/Accounts'
     | '/ClientDashboard/Agents'
-    | '/ClientDashboard/Analytics'
     | '/ClientDashboard/Billing'
     | '/ClientDashboard/Locations'
     | '/ClientDashboard/Reviews'
     | '/ClientDashboard/Settings'
     | '/oauth/success'
     | '/payment/result'
+    | '/zernio/complete'
     | '/AdminDashboard/'
     | '/ClientDashboard/'
   fileRoutesById: FileRoutesById
@@ -373,10 +384,12 @@ export interface RootRouteChildren {
   TermsRouteRoute: typeof TermsRouteRoute
   LoginRoute: typeof LoginRoute
   RegisterRoute: typeof RegisterRoute
+  VerifyEmailRoute: typeof VerifyEmailRoute
   CheckoutRoute: typeof CheckoutRoute
   SubscribeRoute: typeof SubscribeRoute
   OauthSuccessRoute: typeof OauthSuccessRoute
   PaymentResultRoute: typeof PaymentResultRoute
+  ZernioCompleteRoute: typeof ZernioCompleteRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -393,6 +406,13 @@ declare module '@tanstack/react-router' {
       path: '/checkout'
       fullPath: '/checkout'
       preLoaderRoute: typeof CheckoutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/VerifyEmail': {
+      id: '/VerifyEmail'
+      path: '/VerifyEmail'
+      fullPath: '/VerifyEmail'
+      preLoaderRoute: typeof VerifyEmailRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/Register': {
@@ -465,6 +485,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminDashboardIndexRouteImport
       parentRoute: typeof AdminDashboardRouteRoute
     }
+    '/zernio/complete': {
+      id: '/zernio/complete'
+      path: '/zernio/complete'
+      fullPath: '/zernio/complete'
+      preLoaderRoute: typeof ZernioCompleteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/payment/result': {
       id: '/payment/result'
       path: '/payment/result'
@@ -505,13 +532,6 @@ declare module '@tanstack/react-router' {
       path: '/Billing'
       fullPath: '/ClientDashboard/Billing'
       preLoaderRoute: typeof ClientDashboardBillingRouteImport
-      parentRoute: typeof ClientDashboardRouteRoute
-    }
-    '/ClientDashboard/Analytics': {
-      id: '/ClientDashboard/Analytics'
-      path: '/Analytics'
-      fullPath: '/ClientDashboard/Analytics'
-      preLoaderRoute: typeof ClientDashboardAnalyticsRouteImport
       parentRoute: typeof ClientDashboardRouteRoute
     }
     '/ClientDashboard/Agents': {
@@ -608,7 +628,6 @@ const AdminDashboardRouteRouteWithChildren =
 interface ClientDashboardRouteRouteChildren {
   ClientDashboardAccountsRoute: typeof ClientDashboardAccountsRoute
   ClientDashboardAgentsRoute: typeof ClientDashboardAgentsRoute
-  ClientDashboardAnalyticsRoute: typeof ClientDashboardAnalyticsRoute
   ClientDashboardBillingRoute: typeof ClientDashboardBillingRoute
   ClientDashboardLocationsRoute: typeof ClientDashboardLocationsRoute
   ClientDashboardReviewsRoute: typeof ClientDashboardReviewsRoute
@@ -619,7 +638,6 @@ interface ClientDashboardRouteRouteChildren {
 const ClientDashboardRouteRouteChildren: ClientDashboardRouteRouteChildren = {
   ClientDashboardAccountsRoute: ClientDashboardAccountsRoute,
   ClientDashboardAgentsRoute: ClientDashboardAgentsRoute,
-  ClientDashboardAnalyticsRoute: ClientDashboardAnalyticsRoute,
   ClientDashboardBillingRoute: ClientDashboardBillingRoute,
   ClientDashboardLocationsRoute: ClientDashboardLocationsRoute,
   ClientDashboardReviewsRoute: ClientDashboardReviewsRoute,
@@ -639,10 +657,12 @@ const rootRouteChildren: RootRouteChildren = {
   TermsRouteRoute: TermsRouteRoute,
   LoginRoute: LoginRoute,
   RegisterRoute: RegisterRoute,
+  VerifyEmailRoute: VerifyEmailRoute,
   CheckoutRoute: CheckoutRoute,
   SubscribeRoute: SubscribeRoute,
   OauthSuccessRoute: OauthSuccessRoute,
   PaymentResultRoute: PaymentResultRoute,
+  ZernioCompleteRoute: ZernioCompleteRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

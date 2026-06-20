@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Link } from '@tanstack/react-router'
 import { LogOut, LifeBuoy, MapPin, Plus, ChevronDown, User } from 'lucide-react'
 import { useCurrentUser } from '../../utils/useCurrentUser'
 import { getAvatar } from '../../utils/getAvatar'
@@ -15,16 +16,13 @@ export default function ClientDashboardHeader() {
 
   const handleLogout = async () => {
     try {
-      const token = localStorage.getItem('token')
       await fetch(`${API_URL}/auth/logout`, {
         method: 'POST',
         credentials: 'include',
-        headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) },
       })
     } catch (error) {
       console.error('Logout failed:', error)
     } finally {
-      localStorage.removeItem('token')
       localStorage.removeItem('user')
       window.location.href = '/'
     }
@@ -112,14 +110,14 @@ export default function ClientDashboardHeader() {
         <div className={`flex items-center gap-3 ${isRTL ? 'order-1' : 'order-2'}`}>
           <LocaleToggle />
 
-          <button
-            type="button"
+          <Link
+            to="/ClientDashboard/Accounts"
             className="inline-flex items-center gap-2 rounded-xl bg-[#EAF7F4] px-4 py-3 text-[14px] font-bold text-[#0F9D94] transition hover:bg-[#dff3ee]"
           >
             <MapPin className="h-4 w-4" />
             <span>{t.clientHeader.addLocation}</span>
             <Plus className="h-4 w-4" />
-          </button>
+          </Link>
         </div>
       </div>
     </header>

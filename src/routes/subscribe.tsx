@@ -64,7 +64,6 @@ function SubscribePage() {
   // All hooks must come before any conditional returns (React Rules of Hooks).
   const { t, dir, isRTL, locale } = useLocale()
 
-  const token = localStorage.getItem('token')
   const user = getUser()
   const isAdmin = user?.role === 'admin' || user?.role === 'superAdmin'
 
@@ -116,10 +115,6 @@ function SubscribePage() {
       window.location.replace(ppr)
       return
     }
-    if (!token) {
-      window.location.href = `/Login?redirect=${encodeURIComponent('/subscribe')}`
-      return
-    }
     setStatus('ready')
     runSubCheck()
   }, [])
@@ -150,7 +145,6 @@ function SubscribePage() {
       }
     } catch (err) {
       if (err instanceof Error && err.message.includes('401')) {
-        localStorage.removeItem('token')
         localStorage.removeItem('user')
         window.location.href = `/Login?redirect=${encodeURIComponent('/subscribe')}`
         return

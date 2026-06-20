@@ -336,7 +336,6 @@ export default function LoginPage({ initialMode = 'login' }: LoginPageProps) {
       setIsSubmitting(true)
       setServerError('')
       const response: any = await loginUser(loginForm)
-      localStorage.setItem('token', response.data.accessToken)
       localStorage.setItem('user', JSON.stringify(response.data.user))
       const role = response.data.user?.role
       if (role === 'admin' || role === 'superAdmin') {
@@ -367,19 +366,12 @@ export default function LoginPage({ initialMode = 'login' }: LoginPageProps) {
         phone: `+966${signupForm.phone.replace(/\D/g, '')}`,
         password: signupForm.password,
       }
-      const response: any = await signupUser(payload)
-      localStorage.setItem('token', response.data.accessToken)
-      localStorage.setItem('user', JSON.stringify(response.data.user))
-      const role = response.data.user?.role
-      if (role === 'admin' || role === 'superAdmin') {
-        router.navigate({ to: '/AdminDashboard', replace: true })
-      } else {
-        const params = new URLSearchParams(window.location.search)
-        const raw = params.get('redirect')
-        const decoded = raw ? decodeURIComponent(raw) : null
-        const target = decoded && isSafePath(decoded) ? decoded : '/ClientDashboard'
-        router.navigate({ href: target, replace: true })
-      }
+      await signupUser(payload)
+      const params = new URLSearchParams(window.location.search)
+      const redirect = params.get('redirect')
+      const query = new URLSearchParams({ email: payload.email })
+      if (redirect) query.set('redirect', redirect)
+      window.location.assign(`/VerifyEmail?${query.toString()}`)
     } catch (error) {
       setServerError(error instanceof Error ? error.message : t.login.errors.signupFailed)
     } finally {

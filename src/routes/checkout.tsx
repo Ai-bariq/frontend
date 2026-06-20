@@ -43,13 +43,6 @@ function CheckoutPage() {
     const rawBranches = params.get('branchesCount')
     const branchesCount = rawBranches ? parseInt(rawBranches, 10) : 1
 
-    const token = localStorage.getItem('token')
-    if (!token) {
-      const checkoutPath = `/checkout?${params.toString()}`
-      window.location.href = `/Login?redirect=${encodeURIComponent(checkoutPath)}`
-      return
-    }
-
     if (!branchesCount || branchesCount < 1 || branchesCount > 30) {
       setError(`Invalid branch count: ${rawBranches ?? '(missing)'}. Please go back and try again.`)
       return
@@ -77,7 +70,6 @@ function CheckoutPage() {
       .catch((err) => {
         // Expired or invalid token — clear it and redirect to Login with intent
         if (err instanceof Error && err.message.includes('401')) {
-          localStorage.removeItem('token')
           localStorage.removeItem('user')
           const checkoutPath = `/checkout?${params.toString()}`
           window.location.href = `/Login?redirect=${encodeURIComponent(checkoutPath)}`

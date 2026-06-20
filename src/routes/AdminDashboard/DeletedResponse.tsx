@@ -43,7 +43,7 @@ function DeletedResponsesPage() {
       try {
         const token = localStorage.getItem('token')
         const res = await getAuditReplies({
-          status: 'rejected',
+          status: 'deleted',
           page,
           limit: PAGE_SIZE,
         }, token)

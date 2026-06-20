@@ -1,8 +1,10 @@
 import { createFileRoute } from '@tanstack/react-router'
+import { useState } from 'react'
 import { AlertTriangle, Eye, ExternalLink, Mail, Phone, Save, ShieldCheck, User, KeyRound } from 'lucide-react'
 import { useCurrentUser } from '../../utils/useCurrentUser'
 import { getAvatar } from '../../utils/getAvatar'
 import { useLocale } from '../../contexts/LocaleContext'
+import { apiRequest } from '../../services/api'
 
 export const Route = createFileRoute('/ClientDashboard/Settings')({
   component: SettingsPage,
@@ -13,6 +15,28 @@ function SettingsPage() {
   const user = useCurrentUser()
   const textAlign = isRTL ? 'text-right' : 'text-left'
   const avatarUrl = getAvatar(user?.avatar ?? null)
+  const [isDeleting, setIsDeleting] = useState(false)
+
+  const deleteAccount = async () => {
+    const confirmation = window.prompt(
+      'هذا الإجراء نهائي وسيحذف الحساب وكل بياناته. اكتب DELETE للتأكيد:',
+    )
+    if (confirmation !== 'DELETE') return
+    try {
+      setIsDeleting(true)
+      await apiRequest('/users/me', {
+        method: 'DELETE',
+        body: { confirmation },
+      })
+      localStorage.removeItem('token')
+      localStorage.removeItem('user')
+      window.location.replace('/Login')
+    } catch (error) {
+      window.alert(error instanceof Error ? error.message : 'تعذر حذف الحساب.')
+    } finally {
+      setIsDeleting(false)
+    }
+  }
 
   return (
     <section dir={dir} className="min-h-[calc(100vh-80px)] bg-white">
@@ -147,7 +171,12 @@ function SettingsPage() {
             </div>
             <div className="mt-6 rounded-2xl border border-red-200 bg-red-50 px-6 py-5">
               <div className={`flex items-start justify-between gap-4 ${isRTL ? '' : 'flex-row-reverse'}`}>
-                <button type="button" className="inline-flex shrink-0 items-center gap-2 rounded-xl bg-red-600 px-5 py-3 text-sm font-extrabold text-white transition hover:bg-red-700">
+                <button
+                  type="button"
+                  onClick={() => void deleteAccount()}
+                  disabled={isDeleting}
+                  className="inline-flex shrink-0 items-center gap-2 rounded-xl bg-red-600 px-5 py-3 text-sm font-extrabold text-white transition hover:bg-red-700 disabled:opacity-60"
+                >
                   <span>{t.clientPages.settings.deleteAccount}</span>
                 </button>
                 <div className={textAlign}>

@@ -14,6 +14,11 @@ export type SignupPayload = {
   password: string;
 };
 
+export type VerifySignupOtpPayload = {
+  email: string;
+  otp: string;
+};
+
 export function loginUser(payload: LoginPayload) {
   return apiRequest('/auth/login', {
     method: 'POST',
@@ -22,8 +27,22 @@ export function loginUser(payload: LoginPayload) {
 }
 
 export function signupUser(payload: SignupPayload) {
-  return apiRequest('/auth/register', {
+  return apiRequest('/auth/signup/request-otp', {
     method: 'POST',
     body: payload,
   });
+}
+
+export function verifySignupOtp(payload: VerifySignupOtpPayload) {
+  return apiRequest('/auth/signup/verify-otp', {
+    method: 'POST',
+    body: payload,
+  })
+}
+
+export function resendSignupOtp(email: string) {
+  return apiRequest('/auth/signup/resend-otp', {
+    method: 'POST',
+    body: { email },
+  })
 }

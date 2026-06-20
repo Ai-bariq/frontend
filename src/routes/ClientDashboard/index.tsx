@@ -1,341 +1,584 @@
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, Link } from '@tanstack/react-router'
 import {
+  BadgeCheck,
   CalendarDays,
+  LoaderCircle,
   MessageSquareText,
   RefreshCw,
-  Star,
   SmilePlus,
+  Star,
   TriangleAlert,
-  BadgeCheck,
-  TrendingUp,
 } from 'lucide-react'
-import { useLocale } from '../../contexts/LocaleContext'
-
-type DashboardSummary = {
-  performanceScore: number | null
-  newReviews: number
-  averageRating: number | null
-  sentiment: { positive: number; neutral: number; negative: number }
-}
-
-type TopicItem = { label: string; count: number }
-type TimeSeriesPoint = { label: string; value: number }
-type RatingDistributionItem = { stars: 1 | 2 | 3 | 4 | 5; count: number }
-
-type DashboardAnalytics = {
-  ratingTrend: TimeSeriesPoint[]
-  sentimentTrend: TimeSeriesPoint[]
-  reviewVolume: TimeSeriesPoint[]
-  complaintTrend: TimeSeriesPoint[]
-  ratingDistribution: RatingDistributionItem[]
-  repeatedPositives: TopicItem[]
-  repeatedComplaints: TopicItem[]
-}
-
-type DashboardDemographics = {
-  topLanguages: TopicItem[]
-  topCountries: TopicItem[]
-  customerTypes: TopicItem[]
-}
-
-type DashboardData = {
-  summary: DashboardSummary
-  analytics: DashboardAnalytics
-  demographics: DashboardDemographics
-}
-
-const EMPTY_DATA: DashboardData = {
-  summary: { performanceScore: null, newReviews: 0, averageRating: null, sentiment: { positive: 0, neutral: 0, negative: 0 } },
-  analytics: { ratingTrend: [], sentimentTrend: [], reviewVolume: [], complaintTrend: [], ratingDistribution: [], repeatedPositives: [], repeatedComplaints: [] },
-  demographics: { topLanguages: [], topCountries: [], customerTypes: [] },
-}
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import { apiRequest } from '../../services/api'
 
 export const Route = createFileRoute('/ClientDashboard/')({
   component: ClientDashboardHomePage,
 })
 
-function getDominantSentimentPercent(sentiment: DashboardSummary['sentiment']) {
-  const total = sentiment.positive + sentiment.neutral + sentiment.negative
-  if (total === 0) return 50
-  return Math.round((Math.max(sentiment.positive, sentiment.neutral, sentiment.negative) / total) * 100)
+type Envelope<T> = { data: T }
+type Listing = {
+  _id: string
+  businessName?: string
+  locationName?: string
+  status: string
+}
+type Analytics = {
+  listing: { _id: string; businessName: string }
+  summary: {
+    performanceScore: number
+    newReviews: number
+    averageRating: number
+    sentimentPositivePercent: number
+  }
+  charts: {
+    ratingOverTime: Array<{ date: string; avgRating: number; count: number }>
+    sentimentOverTime: Array<{
+      date: string
+      positive: number
+      neutral: number
+      negative: number
+    }>
+    reviewVolume: Array<{ date: string; count: number }>
+    ratingDistribution: Array<{ stars: number; count: number }>
+    complaintTrends: Array<{
+      date: string
+      complaints: number
+      positives: number
+    }>
+  }
+  insights: {
+    repeatedPositives: Array<{ keyword: string; count: number }>
+    repeatedComplaints: Array<{ keyword: string; count: number }>
+  }
+  reviews: Array<{
+    _id: string
+    reviewerName?: string
+    rating: number
+    comment?: string
+    reviewCreatedAt: string
+  }>
 }
 
 function ClientDashboardHomePage() {
-  const { t, dir, isRTL } = useLocale()
-  const data = EMPTY_DATA
-  const sentimentPercent = getDominantSentimentPercent(data.summary.sentiment)
+  const [listings, setListings] = useState<Listing[]>([])
+  const [listingId, setListingId] = useState('')
+  const [range, setRange] = useState('30d')
+  const [analytics, setAnalytics] = useState<Analytics | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
-  const getSentimentLabel = () => {
-    const { positive, neutral, negative } = data.summary.sentiment
-    if (positive === 0 && neutral === 0 && negative === 0) return t.clientDashboard.sentimentLabels.neutral
-    if (positive >= neutral && positive >= negative) return t.clientDashboard.sentimentLabels.positive
-    if (negative >= positive && negative >= neutral) return t.clientDashboard.sentimentLabels.negative
-    return t.clientDashboard.sentimentLabels.neutral
+  const loadListings = useCallback(async () => {
+    await apiRequest('/zernio/sync-reviews', {
+      method: 'POST',
+    }).catch(() => null)
+    const response = await apiRequest<
+      Envelope<{ listings: Listing[] }>
+    >('/listings')
+    const connected = (response.data?.listings ?? []).filter(
+      (listing) => listing.status === 'connected',
+    )
+    setListings(connected)
+    setListingId((current) => current || connected[0]?._id || '')
+    if (connected.length === 0) {
+      setAnalytics(null)
+      setLoading(false)
+    }
+  }, [])
+
+  const loadAnalytics = useCallback(async () => {
+    if (!listingId) return
+    setLoading(true)
+    setError(null)
+    try {
+      const response = await apiRequest<Envelope<Analytics>>(
+        `/client/dashboard/analytics?listingId=${encodeURIComponent(listingId)}&range=${range}`,
+      )
+      setAnalytics(response.data)
+    } catch (requestError) {
+      setError(
+        requestError instanceof Error
+          ? requestError.message
+          : 'تعذر تحميل التحليلات.',
+      )
+    } finally {
+      setLoading(false)
+    }
+  }, [listingId, range])
+
+  useEffect(() => {
+    void loadListings().catch((requestError) => {
+      setError(
+        requestError instanceof Error
+          ? requestError.message
+          : 'تعذر تحميل المواقع.',
+      )
+      setLoading(false)
+    })
+  }, [loadListings])
+
+  useEffect(() => {
+    if (listingId) void loadAnalytics()
+  }, [listingId, range, loadAnalytics])
+
+  const maxVolume = useMemo(
+    () =>
+      Math.max(
+        1,
+        ...(analytics?.charts.reviewVolume.map((point) => point.count) ?? []),
+      ),
+    [analytics],
+  )
+
+  if (!loading && listings.length === 0) {
+    return (
+      <EmptyDashboard
+        title="اربط موقعك لبدء التحليلات"
+        description="بعد ربط Google Business سنزامن التقييمات ونملأ لوحة التحكم تلقائياً."
+      />
+    )
   }
 
-  const textAlign = isRTL ? 'text-right' : 'text-left'
-
   return (
-    <section dir={dir} className={`w-full ${textAlign}`}>
-      <div className="mx-auto flex w-full max-w-[1380px] flex-col gap-6">
-        {/* Toolbar */}
-        <div className="flex flex-wrap items-end justify-between gap-3 my-6">
-          <h2 className="text-2xl font-extrabold text-slate-900">{t.clientDashboard.toolbar.title}</h2>
-          <div className="flex gap-2">
-            <button type="button" className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-3 text-[14px] font-semibold text-slate-700 transition hover:bg-slate-50">
-              <CalendarDays className="h-4 w-4" />
-              {t.clientDashboard.toolbar.last30days}
-            </button>
-            <button type="button" className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-3 text-[14px] font-semibold text-slate-700 transition hover:bg-slate-50">
-              <RefreshCw className="h-4 w-4" />
-              {t.clientDashboard.toolbar.refresh}
-            </button>
-          </div>
-        </div>
-
-        {/* Performance card */}
-        <div className="flex w-full shrink-0 items-center justify-between rounded-[22px] border border-slate-200 bg-white p-6">
-          <div className={textAlign}>
-            <div className="text-[30px] font-extrabold text-slate-900">{t.clientDashboard.performance.title}</div>
-            <p className="mt-2 max-w-[180px] text-[15px] leading-7 text-slate-500">
-              {t.clientDashboard.performance.description}
+    <section dir="rtl" className="w-full text-right">
+      <div className="mx-auto flex max-w-[1380px] flex-col gap-6 py-6">
+        <div className="flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <h1 className="text-3xl font-extrabold text-slate-900">
+              لوحة التحكم
+            </h1>
+            <p className="mt-1 text-sm text-slate-500">
+              تحليلات حقيقية من تقييمات Google Business.
             </p>
           </div>
-          <div className="flex h-[120px] w-[120px] items-center justify-center rounded-full border-2 border-rose-300 bg-rose-50">
-            <span className="text-[58px] font-extrabold leading-none text-red-500">
-              {data.summary.performanceScore ?? 0}
-            </span>
+          <div className="flex flex-wrap gap-2">
+            <select
+              value={listingId}
+              onChange={(event) => setListingId(event.target.value)}
+              className="rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold"
+            >
+              {listings.map((listing) => (
+                <option key={listing._id} value={listing._id}>
+                  {listing.locationName || listing.businessName || 'موقع'}
+                </option>
+              ))}
+            </select>
+            <select
+              value={range}
+              onChange={(event) => setRange(event.target.value)}
+              className="rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold"
+            >
+              <option value="7d">آخر 7 أيام</option>
+              <option value="30d">آخر 30 يوماً</option>
+              <option value="90d">آخر 90 يوماً</option>
+              <option value="180d">آخر 180 يوماً</option>
+            </select>
+            <button
+              type="button"
+              onClick={() => {
+                void apiRequest('/zernio/sync-reviews', {
+                  method: 'POST',
+                }).finally(() => void loadAnalytics())
+              }}
+              className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold"
+            >
+              <RefreshCw className="h-4 w-4" />
+              تحديث
+            </button>
           </div>
         </div>
 
-        {/* Stats row */}
-        <div className="flex flex-col gap-4 lg:flex-row">
-          {[
-            { title: t.clientDashboard.stats.newReviews, value: String(data.summary.newReviews), icon: <MessageSquareText className="h-5 w-5" /> },
-            { title: t.clientDashboard.stats.avgRating, value: data.summary.averageRating !== null ? data.summary.averageRating.toFixed(1) : '0', icon: <Star className="h-5 w-5" /> },
-            { title: t.clientDashboard.stats.sentiment, value: `${sentimentPercent}%`, subtitle: getSentimentLabel(), icon: <SmilePlus className="h-5 w-5" />, emoji: '🫤' },
-          ].map(({ title, value, subtitle, icon, emoji }) => (
-            <div key={title} className="flex-1 rounded-[20px] border border-slate-200 bg-white p-5">
-              <div className="flex items-center justify-between">
-                <div className={`flex flex-col ${isRTL ? 'items-end' : 'items-start'} ${textAlign}`}>
-                  <div className="text-[14px] text-slate-500">{title}</div>
-                  <div className="mt-2 text-[42px] font-extrabold leading-none text-slate-900">{value}</div>
-                  {subtitle && <div className="mt-1 text-[13px] text-slate-500">{subtitle}</div>}
+        {error ? (
+          <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-red-700">
+            {error}
+          </div>
+        ) : null}
+
+        {loading || !analytics ? (
+          <div className="flex min-h-[420px] items-center justify-center text-teal-600">
+            <LoaderCircle className="h-9 w-9 animate-spin" />
+          </div>
+        ) : (
+          <>
+            <div className="grid gap-4 xl:grid-cols-[1fr_2fr]">
+              <div className="flex items-center justify-between rounded-3xl border border-slate-200 bg-white p-6">
+                <div>
+                  <h2 className="text-2xl font-extrabold text-slate-900">
+                    ملخص الأداء
+                  </h2>
+                  <p className="mt-2 text-sm text-slate-500">
+                    جودة السمعة بناءً على التقييم والمشاعر.
+                  </p>
                 </div>
-                <div className="flex items-center gap-3">
-                  <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-[#EAF7F4] text-[#0F9D94]">
-                    {icon}
-                  </div>
-                  {emoji ? <span className="text-[36px]">{emoji}</span> : null}
+                <div className="flex h-28 w-28 items-center justify-center rounded-full border-2 border-teal-300 bg-teal-50 text-4xl font-extrabold text-teal-700">
+                  {analytics.summary.performanceScore}
                 </div>
               </div>
+              <div className="grid gap-4 md:grid-cols-3">
+                <MetricCard
+                  label="تقييمات جديدة"
+                  value={analytics.summary.newReviews}
+                  icon={<MessageSquareText />}
+                />
+                <MetricCard
+                  label="متوسط التقييم"
+                  value={analytics.summary.averageRating.toFixed(1)}
+                  icon={<Star />}
+                />
+                <MetricCard
+                  label="مشاعر إيجابية"
+                  value={`${analytics.summary.sentimentPositivePercent}%`}
+                  icon={<SmilePlus />}
+                />
+              </div>
             </div>
-          ))}
-        </div>
 
-        <SectionTitle title={t.clientDashboard.sections.reputation} isRTL={isRTL} />
+            <h2 className="text-2xl font-extrabold text-slate-900">
+              اتجاهات السمعة
+            </h2>
+            <div className="grid gap-4 xl:grid-cols-2">
+              <ChartCard title="التقييم عبر الزمن">
+                <LineChart
+                  data={analytics.charts.ratingOverTime.map((point) => ({
+                    label: formatBucket(point.date),
+                    value: point.avgRating,
+                  }))}
+                  max={5}
+                />
+              </ChartCard>
+              <ChartCard title="اتجاه المشاعر">
+                <LineChart
+                  data={analytics.charts.sentimentOverTime.map((point) => ({
+                    label: formatBucket(point.date),
+                    value: point.positive,
+                  }))}
+                  max={100}
+                  suffix="%"
+                />
+              </ChartCard>
+              <ChartCard title="حجم التقييمات">
+                <BarChart
+                  data={analytics.charts.reviewVolume.map((point) => ({
+                    label: formatBucket(point.date),
+                    value: point.count,
+                  }))}
+                  max={maxVolume}
+                />
+              </ChartCard>
+              <ChartCard title="توزيع التقييمات">
+                <DistributionChart
+                  data={analytics.charts.ratingDistribution}
+                />
+              </ChartCard>
+            </div>
 
-        <div className="flex flex-col gap-4">
-          <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
-            <ChartCard title={t.clientDashboard.charts.sentimentTrend}>
-              <EmptyLineChart yLabels={['0%', '25%', '50%', '75%', '100%']} isRTL={isRTL} />
-            </ChartCard>
-            <ChartCard title={t.clientDashboard.charts.ratingOverTime}>
-              <EmptyLineChart yLabels={['0', '2', '5']} isRTL={isRTL} />
-            </ChartCard>
-          </div>
-          <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
-            <ChartCard title={t.clientDashboard.charts.reviewVolume}>
-              <EmptyBarsChart />
-            </ChartCard>
-            <ChartCard title={t.clientDashboard.charts.ratingDistribution}>
-              <EmptyDistributionChart />
-            </ChartCard>
-          </div>
-        </div>
-
-        <SectionTitle title={t.clientDashboard.sections.complaints} isRTL={isRTL} />
-
-        <div className="grid grid-cols-1 gap-4 2xl:grid-cols-2">
-          <TopicsCard
-            title={t.clientDashboard.topics.criticisms}
-            subtitle={t.clientDashboard.topics.criticismsSubtitle}
-            icon={<TriangleAlert className="h-4 w-4" />}
-            tone="negative"
-            items={data.analytics.repeatedComplaints}
-            emptyText={t.clientDashboard.topics.emptySync}
-            isRTL={isRTL}
-          />
-          <TopicsCard
-            title={t.clientDashboard.topics.positives}
-            subtitle={t.clientDashboard.topics.positivesSubtitle}
-            icon={<BadgeCheck className="h-4 w-4" />}
-            tone="positive"
-            items={data.analytics.repeatedPositives}
-            emptyText={t.clientDashboard.topics.emptySync}
-            isRTL={isRTL}
-          />
-          <ChartCard title={t.clientDashboard.charts.complaintTrend}>
-            <EmptyLineChart yLabels={['0', '1', '3']} isRTL={isRTL} />
-          </ChartCard>
-          <DemographicsCard demographics={data.demographics} isRTL={isRTL} />
-        </div>
+            <h2 className="text-2xl font-extrabold text-slate-900">
+              تحليل الملاحظات
+            </h2>
+            <div className="grid gap-4 xl:grid-cols-2">
+              <TopicsCard
+                title="إيجابيات متكررة"
+                items={analytics.insights.repeatedPositives}
+                positive
+              />
+              <TopicsCard
+                title="انتقادات متكررة"
+                items={analytics.insights.repeatedComplaints}
+              />
+              <ChartCard title="اتجاه الشكاوى">
+                <BarChart
+                  data={analytics.charts.complaintTrends.map((point) => ({
+                    label: formatBucket(point.date),
+                    value: point.complaints,
+                  }))}
+                  max={Math.max(
+                    1,
+                    ...analytics.charts.complaintTrends.map(
+                      (point) => point.complaints,
+                    ),
+                  )}
+                  color="#f97316"
+                />
+              </ChartCard>
+              <ChartCard title="أحدث التقييمات">
+                <div className="space-y-3">
+                  {analytics.reviews.slice(0, 5).map((review) => (
+                    <div
+                      key={review._id}
+                      className="rounded-xl border border-slate-100 p-3"
+                    >
+                      <div className="flex justify-between text-sm">
+                        <span className="font-bold">
+                          {review.reviewerName || 'عميل Google'}
+                        </span>
+                        <span className="text-amber-500">
+                          {'★'.repeat(review.rating)}
+                        </span>
+                      </div>
+                      <p className="mt-2 line-clamp-2 text-sm text-slate-600">
+                        {review.comment || 'بدون تعليق'}
+                      </p>
+                    </div>
+                  ))}
+                  <Link
+                    to="/ClientDashboard/Reviews"
+                    className="inline-block font-bold text-teal-700"
+                  >
+                    عرض كل التقييمات
+                  </Link>
+                </div>
+              </ChartCard>
+            </div>
+          </>
+        )}
       </div>
     </section>
   )
 }
 
-function SectionTitle({ title, isRTL }: { title: string; isRTL: boolean }) {
+function MetricCard({
+  label,
+  value,
+  icon,
+}: {
+  label: string
+  value: string | number
+  icon: React.ReactNode
+}) {
   return (
-    <div className={`flex ${isRTL ? 'justify-start' : 'justify-start'}`}>
-      <h2 className="text-[32px] font-extrabold text-slate-900">{title}</h2>
+    <div className="rounded-2xl border border-slate-200 bg-white p-5">
+      <div className="flex items-start justify-between">
+        <div>
+          <p className="text-sm text-slate-500">{label}</p>
+          <p className="mt-3 text-4xl font-extrabold text-slate-900">{value}</p>
+        </div>
+        <span className="rounded-xl bg-teal-50 p-3 text-teal-600">{icon}</span>
+      </div>
     </div>
   )
 }
 
-function ChartCard({ title, children }: { title: string; children: React.ReactNode }) {
+function ChartCard({
+  title,
+  children,
+}: {
+  title: string
+  children: React.ReactNode
+}) {
   return (
-    <div className="rounded-[20px] border border-slate-200 bg-white p-5">
-      <div className="mb-5 flex justify-start">
-        <h3 className="text-[24px] font-extrabold text-slate-900">{title}</h3>
-      </div>
+    <div className="rounded-2xl border border-slate-200 bg-white p-5">
+      <h3 className="mb-5 text-xl font-extrabold text-slate-900">{title}</h3>
       {children}
     </div>
   )
 }
 
-function TopicsCard({
-  title, subtitle, tone, items, emptyText, icon, isRTL,
+function LineChart({
+  data,
+  max,
+  suffix = '',
 }: {
-  title: string; subtitle: string; tone: 'positive' | 'negative'; items: TopicItem[]; emptyText: string; icon: React.ReactNode; isRTL: boolean
+  data: Array<{ label: string; value: number }>
+  max: number
+  suffix?: string
 }) {
-  const toneClasses = tone === 'positive' ? 'border-emerald-200 bg-emerald-50/30' : 'border-rose-200 bg-rose-50/30'
-  const textAlign = isRTL ? 'text-right' : 'text-left'
-
+  if (!data.length) return <NoData />
+  const width = 640
+  const height = 230
+  const pad = 30
+  const points = data.map((point, index) => ({
+    ...point,
+    x: pad + (index * (width - pad * 2)) / Math.max(1, data.length - 1),
+    y: height - pad - (point.value / max) * (height - pad * 2),
+  }))
   return (
-    <div className={`rounded-[20px] border p-5 ${toneClasses}`}>
-      <div className={`mb-5 ${textAlign}`}>
-        <div className="flex items-center justify-start gap-2">
-          <span className="text-slate-400">{icon}</span>
-          <h3 className="text-[22px] font-extrabold text-slate-900">{title}</h3>
-        </div>
-        <p className="mt-1 text-[14px] text-slate-500">{subtitle}</p>
-      </div>
+    <div className="overflow-x-auto">
+      <svg viewBox={`0 0 ${width} ${height}`} className="min-w-[560px]">
+        {[0, 1, 2, 3, 4].map((line) => {
+          const y = pad + (line * (height - pad * 2)) / 4
+          return (
+            <line
+              key={line}
+              x1={pad}
+              x2={width - pad}
+              y1={y}
+              y2={y}
+              stroke="#e2e8f0"
+              strokeDasharray="4 5"
+            />
+          )
+        })}
+        <polyline
+          fill="none"
+          stroke="#0f9d94"
+          strokeWidth="3"
+          points={points.map((point) => `${point.x},${point.y}`).join(' ')}
+        />
+        {points.map((point, index) => (
+          <g key={`${point.label}-${index}`}>
+            <circle cx={point.x} cy={point.y} r="4" fill="#0f9d94" />
+            <title>
+              {point.label}: {point.value}
+              {suffix}
+            </title>
+            {index % Math.ceil(data.length / 6) === 0 ? (
+              <text
+                x={point.x}
+                y={height - 8}
+                textAnchor="middle"
+                fontSize="10"
+                fill="#64748b"
+              >
+                {point.label}
+              </text>
+            ) : null}
+          </g>
+        ))}
+      </svg>
+    </div>
+  )
+}
 
-      {items.length === 0 ? (
-        <div className="flex h-[240px] items-center justify-center rounded-[14px] border border-dashed border-slate-200 bg-slate-50 text-center">
-          <p className="max-w-[420px] text-[15px] leading-7 text-slate-500">{emptyText}</p>
+function BarChart({
+  data,
+  max,
+  color = '#0f9d94',
+}: {
+  data: Array<{ label: string; value: number }>
+  max: number
+  color?: string
+}) {
+  if (!data.length) return <NoData />
+  return (
+    <div className="flex h-56 items-end gap-2 overflow-x-auto border-b border-slate-200 px-2">
+      {data.map((point) => (
+        <div
+          key={point.label}
+          className="flex min-w-8 flex-1 flex-col items-center justify-end gap-2"
+        >
+          <span className="text-xs font-bold text-slate-500">{point.value}</span>
+          <div
+            title={`${point.label}: ${point.value}`}
+            className="w-full max-w-10 rounded-t-md"
+            style={{
+              height: `${Math.max(3, (point.value / max) * 170)}px`,
+              backgroundColor: color,
+            }}
+          />
+          <span className="max-w-14 truncate text-[10px] text-slate-500">
+            {point.label}
+          </span>
         </div>
-      ) : (
-        <div className="space-y-3">
+      ))}
+    </div>
+  )
+}
+
+function DistributionChart({
+  data,
+}: {
+  data: Array<{ stars: number; count: number }>
+}) {
+  const max = Math.max(1, ...data.map((item) => item.count))
+  return (
+    <div className="space-y-4">
+      {[...data].reverse().map((item) => (
+        <div key={item.stars} className="flex items-center gap-3">
+          <span className="w-10 text-sm font-bold">{item.stars} ★</span>
+          <div className="h-4 flex-1 rounded-full bg-slate-100">
+            <div
+              className="h-4 rounded-full bg-teal-600"
+              style={{ width: `${(item.count / max) * 100}%` }}
+            />
+          </div>
+          <span className="w-8 text-sm text-slate-500">{item.count}</span>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+function TopicsCard({
+  title,
+  items,
+  positive = false,
+}: {
+  title: string
+  items: Array<{ keyword: string; count: number }>
+  positive?: boolean
+}) {
+  return (
+    <div
+      className={`rounded-2xl border p-5 ${
+        positive
+          ? 'border-emerald-200 bg-emerald-50/40'
+          : 'border-orange-200 bg-orange-50/40'
+      }`}
+    >
+      <div className="flex items-center gap-2">
+        {positive ? (
+          <BadgeCheck className="h-5 w-5 text-emerald-600" />
+        ) : (
+          <TriangleAlert className="h-5 w-5 text-orange-600" />
+        )}
+        <h3 className="text-xl font-extrabold">{title}</h3>
+      </div>
+      {items.length ? (
+        <div className="mt-5 flex flex-wrap gap-2">
           {items.map((item) => (
-            <div key={item.label} className="flex items-center justify-between rounded-xl border border-slate-200 bg-white px-4 py-3">
-              <span className="text-[14px] font-bold text-slate-900">{item.count}</span>
-              <span className="text-[14px] text-slate-600">{item.label}</span>
-            </div>
+            <span
+              key={item.keyword}
+              className="rounded-lg border border-current/15 bg-white px-3 py-2 text-sm"
+            >
+              {item.keyword} <b>{item.count}</b>
+            </span>
           ))}
-        </div>
-      )}
-    </div>
-  )
-}
-
-function DemographicsCard({ demographics, isRTL }: { demographics: DashboardDemographics; isRTL: boolean }) {
-  const { t } = useLocale()
-  const allEmpty = demographics.topLanguages.length === 0 && demographics.topCountries.length === 0 && demographics.customerTypes.length === 0
-
-  return (
-    <div className="rounded-[20px] border border-slate-200 bg-white p-5">
-      <div className="mb-5 flex items-center justify-start gap-2">
-        <TrendingUp className="h-5 w-5 text-slate-400" />
-        <h3 className="text-[22px] font-extrabold text-slate-900">{t.clientDashboard.demographics.title}</h3>
-      </div>
-
-      {allEmpty ? (
-        <div className="flex h-[240px] items-center justify-center rounded-[14px] border border-dashed border-slate-200 bg-slate-50">
-          <p className="text-[15px] text-slate-500">{t.clientDashboard.topics.emptySync}</p>
         </div>
       ) : (
-        <div className="space-y-5">
-          <DemographicGroup title={t.clientDashboard.demographics.languages} items={demographics.topLanguages} isRTL={isRTL} noDataLabel={t.clientDashboard.demographics.noData} />
-          <DemographicGroup title={t.clientDashboard.demographics.countries} items={demographics.topCountries} isRTL={isRTL} noDataLabel={t.clientDashboard.demographics.noData} />
-          <DemographicGroup title={t.clientDashboard.demographics.customerTypes} items={demographics.customerTypes} isRTL={isRTL} noDataLabel={t.clientDashboard.demographics.noData} />
-        </div>
+        <NoData />
       )}
     </div>
   )
 }
 
-function DemographicGroup({ title, items, isRTL, noDataLabel }: { title: string; items: TopicItem[]; isRTL: boolean; noDataLabel: string }) {
-  const textAlign = isRTL ? 'text-right' : 'text-left'
+function NoData() {
   return (
-    <div>
-      <h4 className={`mb-3 ${textAlign} text-[15px] font-bold text-slate-700`}>{title}</h4>
-      {items.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50 px-4 py-6 text-center text-[14px] text-slate-400">
-          {noDataLabel}
-        </div>
-      ) : (
-        <div className="space-y-2">
-          {items.map((item) => (
-            <div key={item.label} className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
-              <span className="text-[14px] font-bold text-slate-900">{item.count}</span>
-              <span className="text-[14px] text-slate-600">{item.label}</span>
-            </div>
-          ))}
-        </div>
-      )}
+    <div className="flex h-40 items-center justify-center text-sm text-slate-400">
+      لا توجد بيانات كافية في الفترة المحددة.
     </div>
   )
 }
 
-function EmptyLineChart({ yLabels, isRTL }: { yLabels: string[]; isRTL: boolean }) {
+function EmptyDashboard({
+  title,
+  description,
+}: {
+  title: string
+  description: string
+}) {
   return (
-    <div className="relative h-[240px] rounded-[14px] border border-slate-100 bg-white">
-      <div className="absolute inset-0 px-12 py-6">
-        <div className="flex h-full flex-col justify-between">
-          {yLabels.map((label) => (
-            <div key={label} className="relative flex items-center">
-              <span className={`absolute ${isRTL ? 'right-[-38px]' : 'left-[-38px]'} text-[11px] text-slate-400`}>{label}</span>
-              <div className="h-px w-full border-t border-dashed border-slate-200" />
-            </div>
-          ))}
-        </div>
-      </div>
-      <div className="absolute bottom-6 left-12 right-12 h-px bg-slate-300" />
-      <div className={`absolute bottom-6 ${isRTL ? 'right-12' : 'left-12'} top-6 w-px bg-slate-300`} />
+    <div
+      dir="rtl"
+      className="flex min-h-[65vh] flex-col items-center justify-center text-center"
+    >
+      <MessageSquareText className="h-12 w-12 text-teal-600" />
+      <h1 className="mt-5 text-3xl font-extrabold text-slate-900">{title}</h1>
+      <p className="mt-3 max-w-lg text-slate-500">{description}</p>
+      <Link
+        to="/ClientDashboard/Accounts"
+        className="mt-6 rounded-xl bg-teal-600 px-5 py-3 font-bold text-white"
+      >
+        إضافة موقع
+      </Link>
     </div>
   )
 }
 
-function EmptyBarsChart() {
-  return (
-    <div className="relative h-[240px] rounded-[14px] border border-slate-100 bg-white">
-      <div className="absolute inset-0 px-12 py-6">
-        <div className="flex h-full flex-col justify-between">
-          {Array.from({ length: 5 }).map((_, i) => (
-            <div key={i} className="border-t border-dashed border-slate-200" />
-          ))}
-        </div>
-      </div>
-      <div className="absolute bottom-6 left-12 right-12 h-px bg-slate-300" />
-      <div className="absolute bottom-6 right-12 top-6 w-px bg-slate-300" />
-    </div>
-  )
-}
-
-function EmptyDistributionChart() {
-  return (
-    <div className="relative h-[240px] rounded-[14px] border border-slate-100 bg-white">
-      <div className="absolute inset-0 px-12 py-6">
-        <div className="grid h-full grid-cols-4 gap-6">
-          {Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="border-r border-dashed border-slate-200 last:border-r-0" />
-          ))}
-        </div>
-      </div>
-      <div className="absolute bottom-6 left-12 right-12 h-px bg-slate-300" />
-      <div className="absolute bottom-6 right-12 top-6 w-px bg-slate-300" />
-    </div>
-  )
+function formatBucket(value: string) {
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return value
+  return new Intl.DateTimeFormat('ar-SA', {
+    month: 'short',
+    day: 'numeric',
+  }).format(date)
 }

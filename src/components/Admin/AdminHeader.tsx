@@ -41,16 +41,13 @@ export default function AdminHeader({
 
   const handleLogout = async () => {
     try {
-      const token = localStorage.getItem('token')
       await fetch(`${API_URL}/auth/logout`, {
         method: 'POST',
         credentials: 'include',
-        headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) },
       })
     } catch (error) {
       console.error('Logout failed:', error)
     } finally {
-      localStorage.removeItem('token')
       localStorage.removeItem('user')
       window.location.href = '/'
     }

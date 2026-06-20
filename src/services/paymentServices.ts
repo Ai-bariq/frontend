@@ -112,12 +112,8 @@ export type RetryResponse = {
 
 // ─── API calls ────────────────────────────────────────────────────────────────
 
-function token() {
-  return localStorage.getItem('token')
-}
-
 export async function getBillingMe(): Promise<BillingData> {
-  const res = await apiRequest<{ success: boolean; data: BillingData }>('/billing/me', { token: token() })
+  const res = await apiRequest<{ success: boolean; data: BillingData }>('/billing/me')
   return res.data
 }
 
@@ -128,20 +124,18 @@ export async function createCheckout(params: {
   const res = await apiRequest<CheckoutResponse>('/payments/create-checkout', {
     method: 'POST',
     body: params,
-    token: token(),
   })
   return res.data
 }
 
 export async function verifyCharge(chargeId: string): Promise<VerifyResponse['data']> {
-  const res = await apiRequest<VerifyResponse>(`/payments/verify/${chargeId}`, { token: token() })
+  const res = await apiRequest<VerifyResponse>(`/payments/verify/${chargeId}`)
   return res.data
 }
 
 export async function cancelSubscription(): Promise<CancelResponse['data']> {
   const res = await apiRequest<CancelResponse>('/subscriptions/cancel', {
     method: 'POST',
-    token: token(),
   })
   return res.data
 }
@@ -149,7 +143,6 @@ export async function cancelSubscription(): Promise<CancelResponse['data']> {
 export async function retryPayment(): Promise<RetryResponse['data']> {
   const res = await apiRequest<RetryResponse>('/subscriptions/retry-payment', {
     method: 'POST',
-    token: token(),
   })
   return res.data
 }

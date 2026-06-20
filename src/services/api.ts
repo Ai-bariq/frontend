@@ -16,14 +16,25 @@ export async function apiRequest<T>(
   endpoint: string,
   options: ApiOptions = {}
 ): Promise<T> {
-  const res = await fetch(`${API_URL}${endpoint}`, {
+  const execute = () => fetch(`${API_URL}${endpoint}`, {
     method: options.method || 'GET',
+    credentials: 'include',
     headers: {
       'Content-Type': 'application/json',
       ...(options.token ? { Authorization: `Bearer ${options.token}` } : {}),
     },
     body: options.body ? JSON.stringify(options.body) : undefined,
   })
+
+  let res = await execute()
+  if (res.status === 401 && endpoint !== '/auth/refresh') {
+    const refreshed = await fetch(`${API_URL}/auth/refresh`, {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+    })
+    if (refreshed.ok) res = await execute()
+  }
 
   if (res.status === 401) {
     window.dispatchEvent(new CustomEvent(AUTH_UNAUTHORIZED_EVENT))

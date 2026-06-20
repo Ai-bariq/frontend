@@ -6,7 +6,7 @@
  */
 export function isAuthenticated(): boolean {
   if (typeof window === 'undefined') return false
-  return !!localStorage.getItem('token')
+  return !!localStorage.getItem('user')
 }
 
 export function hasAdminAccess(): boolean {
@@ -25,6 +25,5 @@ export function hasAdminAccess(): boolean {
 
 /** Remove all auth artifacts from local storage. */
 export function clearAuthStorage(): void {
-  localStorage.removeItem('token')
   localStorage.removeItem('user')
 }

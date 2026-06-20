@@ -1,4 +1,4 @@
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useEffect, useRef, useState } from 'react'
 import { CheckCircle2, XCircle, Loader2, Receipt, GitBranch, CalendarDays, Banknote } from 'lucide-react'
 import logo from '../../assets/logo.png'
@@ -15,6 +15,7 @@ const MAX_POLLS = 20 // 60 seconds total
 
 function PaymentResultPage() {
   const { t, dir, isRTL } = useLocale()
+  const navigate = useNavigate()
 
   const params = new URLSearchParams(window.location.search)
   const tapId = params.get('tap_id')
@@ -23,6 +24,7 @@ function PaymentResultPage() {
   const [chargeId, setChargeId] = useState<string | null>(null)
   const [subscription, setSubscription] = useState<Subscription | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [providerMessage, setProviderMessage] = useState<string | null>(null)
   const [timedOut, setTimedOut] = useState(false)
   const pollCount = useRef(0)
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -44,7 +46,9 @@ function PaymentResultPage() {
   //      which removes all forward entries (Tap chain + /result) in one shot.
   //   Result: [..., /ClientDashboard/Billing] — Tap is fully gone.
   const navigateAfterSuccess = () => {
-    const target = '/ClientDashboard/Billing'
+    const target = localStorage.getItem('bariq:resume-location-connection')
+      ? '/ClientDashboard/Accounts?resumeLocation=1'
+      : '/ClientDashboard/Billing'
     const flow = sessionStorage.getItem('bariq_flow')
     sessionStorage.removeItem('bariq_flow')
     const originLengthStr = sessionStorage.getItem('bariq_ppr_origin_length')
@@ -62,9 +66,11 @@ function PaymentResultPage() {
     window.location.replace(target)
   }
 
-  const navigateAfterFailure = (target: string) => {
+  const navigateAfterFailure = (
+    target: '/subscribe' | '/ClientDashboard/Billing',
+  ) => {
     sessionStorage.removeItem('bariq_flow')
-    window.location.replace(target)
+    void navigate({ to: target })
   }
 
   useEffect(() => {
@@ -75,12 +81,6 @@ function PaymentResultPage() {
 
     if (!tapId) {
       setResult('not_found')
-      return
-    }
-
-    const token = localStorage.getItem('token')
-    if (!token) {
-      window.location.href = `/Login?redirect=${encodeURIComponent(window.location.pathname + window.location.search)}`
       return
     }
 
@@ -102,6 +102,9 @@ function PaymentResultPage() {
         } else {
           settled.current = true
           setResult(data.result)
+          if (data.result !== 'success') {
+            setProviderMessage(data.message)
+          }
           // On success, fetch subscription details to display in the receipt
           if (data.result === 'success') {
             try {
@@ -251,7 +254,11 @@ function PaymentResultPage() {
         </div>
         <h1 className="mt-5 text-2xl font-extrabold text-slate-900">{t.payment.result.failed}</h1>
         <p className="mt-1.5 text-sm text-slate-500">
-          {error ? sanitiseError(error) : t.payment.result.failedMessage}
+          {error
+            ? sanitiseError(error)
+            : providerMessage
+              ? sanitiseProviderMessage(providerMessage)
+              : t.payment.result.failedMessage}
         </p>
       </div>
 
@@ -333,4 +340,15 @@ function sanitiseError(msg: string): string {
   if (msg.includes('404')) return 'Payment record not found.'
   if (msg.includes('401')) return 'Your session has expired. Please log in again.'
   return 'Your payment could not be verified. Please contact support if your card was charged.'
+}
+
+function sanitiseProviderMessage(message: string): string {
+  const normalized = message.toLowerCase()
+  if (normalized.includes('cancel')) {
+    return 'The payment was cancelled and your card was not charged. You can safely try again.'
+  }
+  if (normalized.includes('declin')) {
+    return 'The test card was declined by the payment gateway. Please use a supported Tap test card and try again.'
+  }
+  return 'The payment was not completed. Your card was not charged.'
 }
