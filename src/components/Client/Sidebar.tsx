@@ -1,8 +1,9 @@
 import { Link, useRouterState } from '@tanstack/react-router'
 import {
   LayoutGrid,
+  BarChart2,
   MessageSquareText,
-  Users,
+  MapPin,
   CreditCard,
   Receipt,
   Settings,
@@ -17,15 +18,15 @@ export default function Sidebar() {
   })
 
   const navItems = [
-    { label: t.clientSidebar.nav.dashboard, to: '/ClientDashboard', icon: LayoutGrid },
-    { label: t.clientSidebar.nav.reviews, to: '/ClientDashboard/Reviews', icon: MessageSquareText },
-    { label: t.clientSidebar.nav.agents, to: '/ClientDashboard/Agents', icon: Users },
+    { label: t.clientSidebar.nav.dashboard,  to: '/ClientDashboard',           icon: LayoutGrid },
+    { label: t.clientSidebar.nav.analytics,  to: '/ClientDashboard/Analytics', icon: BarChart2 },
+    { label: t.clientSidebar.nav.reviews,    to: '/ClientDashboard/Reviews',   icon: MessageSquareText },
+    { label: t.clientSidebar.nav.locations, to: '/ClientDashboard/Locations', icon: MapPin },
     { label: t.clientSidebar.nav.accounts, to: '/ClientDashboard/Accounts', icon: CreditCard },
     { label: t.clientSidebar.nav.billing, to: '/ClientDashboard/Billing', icon: Receipt },
     { label: t.clientSidebar.nav.settings, to: '/ClientDashboard/Settings', icon: Settings },
   ] as const
 
-  // LTR: sidebar on left; RTL: sidebar on right
   const sideAnchor = isRTL ? 'inset-y-0 right-0' : 'inset-y-0 left-0'
   const border = isRTL ? 'border-l' : 'border-r'
 

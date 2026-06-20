@@ -1,28 +1,63 @@
-import { Bell, ChevronDown, Menu } from 'lucide-react'
+import { useState, useEffect, useRef } from 'react'
+import { ChevronDown, LogOut, Menu } from 'lucide-react'
+import { Link } from '@tanstack/react-router'
 import { useLocale } from '../../contexts/LocaleContext'
-import type { Locale } from '../../locales'
+import { useCurrentUser } from '../../utils/useCurrentUser'
+import { getAvatar } from '../../utils/getAvatar'
+import LocaleToggle from '../UI/LocaleToggle'
+
+const API_URL = import.meta.env.VITE_API_URL
 
 type AdminHeaderProps = {
   isSidebarOpen: boolean
   onToggleSidebar: () => void
-  adminName?: string
-  adminEmail?: string
-  adminAvatar?: string
   logo?: string
 }
 
 export default function AdminHeader({
   isSidebarOpen,
   onToggleSidebar,
-  adminName = 'Admin',
-  adminEmail = 'admin@bariq.ai',
-  adminAvatar,
   logo,
 }: AdminHeaderProps) {
-  const { t, dir, isRTL, locale, setLocale } = useLocale()
+  const { t, dir, isRTL } = useLocale()
+  const user = useCurrentUser()
+  const avatarUrl = getAvatar(user?.avatar ?? null)
+  const [isOpen, setIsOpen] = useState(false)
+  const dropdownRef = useRef<HTMLDivElement>(null)
 
   const textAlign = isRTL ? 'text-right' : 'text-left'
-  const toggleLocale = () => setLocale((locale === 'ar' ? 'en' : 'ar') as Locale)
+  const dropdownPosition = isRTL ? 'left-0' : 'right-0'
+  const rowReverse = isRTL ? 'flex-row' : 'flex-row-reverse'
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setIsOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
+
+  const handleLogout = async () => {
+    try {
+      const token = localStorage.getItem('token')
+      await fetch(`${API_URL}/auth/logout`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+      })
+    } catch (error) {
+      console.error('Logout failed:', error)
+    } finally {
+      localStorage.removeItem('token')
+      localStorage.removeItem('user')
+      window.location.href = '/'
+    }
+  }
+
+  const adminName = user?.name ?? 'Admin'
+  const adminEmail = user?.email ?? ''
 
   return (
     <header
@@ -56,43 +91,55 @@ export default function AdminHeader({
           </button>
         </div>
 
-        {/* Profile side */}
+        {/* Right side */}
         <div className="flex items-center gap-2 sm:gap-3">
-          <button
-            type="button"
-            onClick={toggleLocale}
-            className="inline-flex h-9 items-center justify-center rounded-lg border border-slate-200 bg-white px-3 text-xs font-bold text-slate-600 transition hover:bg-slate-50"
-          >
-            {locale === 'ar' ? 'EN' : 'ع'}
-          </button>
+          <LocaleToggle />
 
-          <button
-            type="button"
-            className="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-slate-200 text-slate-600 transition hover:bg-slate-50"
-            aria-label={t.adminHeader.notifications}
-          >
-            <Bell className="h-5 w-5" />
-          </button>
+          {/* Profile dropdown */}
+          <div className="relative" ref={dropdownRef}>
+            <button
+              type="button"
+              onClick={() => setIsOpen((prev) => !prev)}
+              className={`flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-2.5 py-2 ${textAlign} transition hover:bg-slate-50 sm:px-3 ${rowReverse}`}
+            >
+              <div className="flex h-11 w-11 items-center justify-center overflow-hidden rounded-full border border-slate-200 bg-slate-100">
+                {avatarUrl ? (
+                  <img src={avatarUrl} alt={adminName} className="h-full w-full object-cover" />
+                ) : (
+                  <span className="text-sm font-bold text-slate-700">{adminName.slice(0, 1)}</span>
+                )}
+              </div>
 
-          <button
-            type="button"
-            className={`flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-2.5 py-2 ${textAlign} transition hover:bg-slate-50 sm:px-3`}
-          >
-            <ChevronDown className="hidden h-4 w-4 text-slate-400 sm:block" />
+              <div className={`hidden min-w-0 sm:block ${textAlign}`}>
+                <p className="truncate text-sm font-extrabold text-slate-900">{adminName}</p>
+                <p className="truncate text-xs text-slate-500">{adminEmail}</p>
+              </div>
 
-            <div className={`hidden min-w-0 sm:block ${textAlign}`}>
-              <p className="truncate text-sm font-extrabold text-slate-900">{adminName}</p>
-              <p className="truncate text-xs text-slate-500">{adminEmail}</p>
-            </div>
+              <ChevronDown className={`hidden h-4 w-4 text-slate-400 sm:block transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
+            </button>
 
-            <div className="flex h-11 w-11 items-center justify-center overflow-hidden rounded-full border border-slate-200 bg-slate-100">
-              {adminAvatar ? (
-                <img src={adminAvatar} alt={adminName} className="h-full w-full object-cover" />
-              ) : (
-                <span className="text-sm font-bold text-slate-700">{adminName.slice(0, 1)}</span>
-              )}
-            </div>
-          </button>
+            {isOpen && (
+              <div className={`absolute ${dropdownPosition} top-[calc(100%+10px)] w-[220px] rounded-2xl border border-slate-200 bg-white p-2 shadow-[0_18px_40px_rgba(15,23,42,0.12)]`}>
+                <button
+                  type="button"
+                  onClick={handleLogout}
+                  className={`flex w-full items-center ${isRTL ? 'justify-between' : 'justify-start gap-3'} rounded-xl px-3 py-3 text-[14px] font-medium text-rose-600 transition hover:bg-rose-50`}
+                >
+                  {isRTL ? (
+                    <>
+                      <span>{t.adminHeader.logout}</span>
+                      <LogOut className="h-4 w-4" />
+                    </>
+                  ) : (
+                    <>
+                      <LogOut className="h-4 w-4" />
+                      <span>{t.adminHeader.logout}</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </header>

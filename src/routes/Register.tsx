@@ -2,9 +2,9 @@ import { createFileRoute, redirect } from '@tanstack/react-router'
 import LoginPage from '#/components/LandingSections/Login'
 import { isAuthenticated } from '../utils/auth'
 
-export const Route = createFileRoute('/Login')({
+export const Route = createFileRoute('/Register')({
   beforeLoad: () => {
-    // Redirect already-authenticated users away from the login page
+    // Redirect already-authenticated users away from the register page
     if (isAuthenticated()) {
       throw redirect({ to: '/ClientDashboard' })
     }
@@ -16,5 +16,5 @@ export const Route = createFileRoute('/Login')({
 })
 
 function RouteComponent() {
-  return <LoginPage initialMode="login" />
+  return <LoginPage initialMode="signup" />
 }

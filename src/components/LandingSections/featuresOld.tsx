@@ -676,7 +676,7 @@ function useRevealOnScroll() {
 
 function GradientButton({ children }: { children: React.ReactNode }) {
   return (
-    <Link to="/login" className={STYLES.button.gradient}>
+    <Link to="/Login" className={STYLES.button.gradient}>
       <ArrowLeft className={STYLES.button.icon} />
       <span>{children}</span>
     </Link>
@@ -1153,7 +1153,7 @@ function AnalyticsPointItem({ point }: { point: AnalyticsPoint }) {
   return (
     <div className={STYLES.analytics.pointRow}>
       <div className={STYLES.analytics.pointIconWrap}>
-        <Icon className={STYLES.analytics.pointIcon} />
+        <Icon className="h-5 w-5 text-teal-600" />
       </div>
 
       <div>

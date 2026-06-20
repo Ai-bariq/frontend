@@ -9,6 +9,9 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SubscribeRouteImport } from './routes/subscribe'
+import { Route as CheckoutRouteImport } from './routes/checkout'
+import { Route as RegisterRouteImport } from './routes/Register'
 import { Route as LoginRouteImport } from './routes/Login'
 import { Route as TermsRouteRouteImport } from './routes/terms/route'
 import { Route as RefundPolicyRouteRouteImport } from './routes/refund-policy/route'
@@ -17,9 +20,14 @@ import { Route as ClientDashboardRouteRouteImport } from './routes/ClientDashboa
 import { Route as AdminDashboardRouteRouteImport } from './routes/AdminDashboard/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ClientDashboardIndexRouteImport } from './routes/ClientDashboard/index'
+import { Route as AdminDashboardIndexRouteImport } from './routes/AdminDashboard/index'
+import { Route as PaymentResultRouteImport } from './routes/payment/result'
+import { Route as OauthSuccessRouteImport } from './routes/oauth/success'
 import { Route as ClientDashboardSettingsRouteImport } from './routes/ClientDashboard/Settings'
 import { Route as ClientDashboardReviewsRouteImport } from './routes/ClientDashboard/Reviews'
+import { Route as ClientDashboardLocationsRouteImport } from './routes/ClientDashboard/Locations'
 import { Route as ClientDashboardBillingRouteImport } from './routes/ClientDashboard/Billing'
+import { Route as ClientDashboardAnalyticsRouteImport } from './routes/ClientDashboard/Analytics'
 import { Route as ClientDashboardAgentsRouteImport } from './routes/ClientDashboard/Agents'
 import { Route as ClientDashboardAccountsRouteImport } from './routes/ClientDashboard/Accounts'
 import { Route as AdminDashboardEditiedResponseRouteImport } from './routes/AdminDashboard/EditiedResponse'
@@ -30,6 +38,21 @@ import { Route as AdminDashboardAnalyticsRouteImport } from './routes/AdminDashb
 import { Route as AdminDashboardAdminSettingsRouteImport } from './routes/AdminDashboard/AdminSettings'
 import { Route as AdminDashboardAdminHomeRouteImport } from './routes/AdminDashboard/AdminHome'
 
+const SubscribeRoute = SubscribeRouteImport.update({
+  id: '/subscribe',
+  path: '/subscribe',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CheckoutRoute = CheckoutRouteImport.update({
+  id: '/checkout',
+  path: '/checkout',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RegisterRoute = RegisterRouteImport.update({
+  id: '/Register',
+  path: '/Register',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LoginRoute = LoginRouteImport.update({
   id: '/Login',
   path: '/Login',
@@ -70,6 +93,21 @@ const ClientDashboardIndexRoute = ClientDashboardIndexRouteImport.update({
   path: '/',
   getParentRoute: () => ClientDashboardRouteRoute,
 } as any)
+const AdminDashboardIndexRoute = AdminDashboardIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AdminDashboardRouteRoute,
+} as any)
+const PaymentResultRoute = PaymentResultRouteImport.update({
+  id: '/payment/result',
+  path: '/payment/result',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OauthSuccessRoute = OauthSuccessRouteImport.update({
+  id: '/oauth/success',
+  path: '/oauth/success',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ClientDashboardSettingsRoute = ClientDashboardSettingsRouteImport.update({
   id: '/Settings',
   path: '/Settings',
@@ -80,11 +118,23 @@ const ClientDashboardReviewsRoute = ClientDashboardReviewsRouteImport.update({
   path: '/Reviews',
   getParentRoute: () => ClientDashboardRouteRoute,
 } as any)
+const ClientDashboardLocationsRoute =
+  ClientDashboardLocationsRouteImport.update({
+    id: '/Locations',
+    path: '/Locations',
+    getParentRoute: () => ClientDashboardRouteRoute,
+  } as any)
 const ClientDashboardBillingRoute = ClientDashboardBillingRouteImport.update({
   id: '/Billing',
   path: '/Billing',
   getParentRoute: () => ClientDashboardRouteRoute,
 } as any)
+const ClientDashboardAnalyticsRoute =
+  ClientDashboardAnalyticsRouteImport.update({
+    id: '/Analytics',
+    path: '/Analytics',
+    getParentRoute: () => ClientDashboardRouteRoute,
+  } as any)
 const ClientDashboardAgentsRoute = ClientDashboardAgentsRouteImport.update({
   id: '/Agents',
   path: '/Agents',
@@ -142,6 +192,9 @@ export interface FileRoutesByFullPath {
   '/refund-policy': typeof RefundPolicyRouteRoute
   '/terms': typeof TermsRouteRoute
   '/Login': typeof LoginRoute
+  '/Register': typeof RegisterRoute
+  '/checkout': typeof CheckoutRoute
+  '/subscribe': typeof SubscribeRoute
   '/AdminDashboard/AdminHome': typeof AdminDashboardAdminHomeRoute
   '/AdminDashboard/AdminSettings': typeof AdminDashboardAdminSettingsRoute
   '/AdminDashboard/Analytics': typeof AdminDashboardAnalyticsRoute
@@ -151,18 +204,25 @@ export interface FileRoutesByFullPath {
   '/AdminDashboard/EditiedResponse': typeof AdminDashboardEditiedResponseRoute
   '/ClientDashboard/Accounts': typeof ClientDashboardAccountsRoute
   '/ClientDashboard/Agents': typeof ClientDashboardAgentsRoute
+  '/ClientDashboard/Analytics': typeof ClientDashboardAnalyticsRoute
   '/ClientDashboard/Billing': typeof ClientDashboardBillingRoute
+  '/ClientDashboard/Locations': typeof ClientDashboardLocationsRoute
   '/ClientDashboard/Reviews': typeof ClientDashboardReviewsRoute
   '/ClientDashboard/Settings': typeof ClientDashboardSettingsRoute
+  '/oauth/success': typeof OauthSuccessRoute
+  '/payment/result': typeof PaymentResultRoute
+  '/AdminDashboard/': typeof AdminDashboardIndexRoute
   '/ClientDashboard/': typeof ClientDashboardIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/AdminDashboard': typeof AdminDashboardRouteRouteWithChildren
   '/privacy-policy': typeof PrivacyPolicyRouteRoute
   '/refund-policy': typeof RefundPolicyRouteRoute
   '/terms': typeof TermsRouteRoute
   '/Login': typeof LoginRoute
+  '/Register': typeof RegisterRoute
+  '/checkout': typeof CheckoutRoute
+  '/subscribe': typeof SubscribeRoute
   '/AdminDashboard/AdminHome': typeof AdminDashboardAdminHomeRoute
   '/AdminDashboard/AdminSettings': typeof AdminDashboardAdminSettingsRoute
   '/AdminDashboard/Analytics': typeof AdminDashboardAnalyticsRoute
@@ -172,9 +232,14 @@ export interface FileRoutesByTo {
   '/AdminDashboard/EditiedResponse': typeof AdminDashboardEditiedResponseRoute
   '/ClientDashboard/Accounts': typeof ClientDashboardAccountsRoute
   '/ClientDashboard/Agents': typeof ClientDashboardAgentsRoute
+  '/ClientDashboard/Analytics': typeof ClientDashboardAnalyticsRoute
   '/ClientDashboard/Billing': typeof ClientDashboardBillingRoute
+  '/ClientDashboard/Locations': typeof ClientDashboardLocationsRoute
   '/ClientDashboard/Reviews': typeof ClientDashboardReviewsRoute
   '/ClientDashboard/Settings': typeof ClientDashboardSettingsRoute
+  '/oauth/success': typeof OauthSuccessRoute
+  '/payment/result': typeof PaymentResultRoute
+  '/AdminDashboard': typeof AdminDashboardIndexRoute
   '/ClientDashboard': typeof ClientDashboardIndexRoute
 }
 export interface FileRoutesById {
@@ -186,6 +251,9 @@ export interface FileRoutesById {
   '/refund-policy': typeof RefundPolicyRouteRoute
   '/terms': typeof TermsRouteRoute
   '/Login': typeof LoginRoute
+  '/Register': typeof RegisterRoute
+  '/checkout': typeof CheckoutRoute
+  '/subscribe': typeof SubscribeRoute
   '/AdminDashboard/AdminHome': typeof AdminDashboardAdminHomeRoute
   '/AdminDashboard/AdminSettings': typeof AdminDashboardAdminSettingsRoute
   '/AdminDashboard/Analytics': typeof AdminDashboardAnalyticsRoute
@@ -195,9 +263,14 @@ export interface FileRoutesById {
   '/AdminDashboard/EditiedResponse': typeof AdminDashboardEditiedResponseRoute
   '/ClientDashboard/Accounts': typeof ClientDashboardAccountsRoute
   '/ClientDashboard/Agents': typeof ClientDashboardAgentsRoute
+  '/ClientDashboard/Analytics': typeof ClientDashboardAnalyticsRoute
   '/ClientDashboard/Billing': typeof ClientDashboardBillingRoute
+  '/ClientDashboard/Locations': typeof ClientDashboardLocationsRoute
   '/ClientDashboard/Reviews': typeof ClientDashboardReviewsRoute
   '/ClientDashboard/Settings': typeof ClientDashboardSettingsRoute
+  '/oauth/success': typeof OauthSuccessRoute
+  '/payment/result': typeof PaymentResultRoute
+  '/AdminDashboard/': typeof AdminDashboardIndexRoute
   '/ClientDashboard/': typeof ClientDashboardIndexRoute
 }
 export interface FileRouteTypes {
@@ -210,6 +283,9 @@ export interface FileRouteTypes {
     | '/refund-policy'
     | '/terms'
     | '/Login'
+    | '/Register'
+    | '/checkout'
+    | '/subscribe'
     | '/AdminDashboard/AdminHome'
     | '/AdminDashboard/AdminSettings'
     | '/AdminDashboard/Analytics'
@@ -219,18 +295,25 @@ export interface FileRouteTypes {
     | '/AdminDashboard/EditiedResponse'
     | '/ClientDashboard/Accounts'
     | '/ClientDashboard/Agents'
+    | '/ClientDashboard/Analytics'
     | '/ClientDashboard/Billing'
+    | '/ClientDashboard/Locations'
     | '/ClientDashboard/Reviews'
     | '/ClientDashboard/Settings'
+    | '/oauth/success'
+    | '/payment/result'
+    | '/AdminDashboard/'
     | '/ClientDashboard/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/AdminDashboard'
     | '/privacy-policy'
     | '/refund-policy'
     | '/terms'
     | '/Login'
+    | '/Register'
+    | '/checkout'
+    | '/subscribe'
     | '/AdminDashboard/AdminHome'
     | '/AdminDashboard/AdminSettings'
     | '/AdminDashboard/Analytics'
@@ -240,9 +323,14 @@ export interface FileRouteTypes {
     | '/AdminDashboard/EditiedResponse'
     | '/ClientDashboard/Accounts'
     | '/ClientDashboard/Agents'
+    | '/ClientDashboard/Analytics'
     | '/ClientDashboard/Billing'
+    | '/ClientDashboard/Locations'
     | '/ClientDashboard/Reviews'
     | '/ClientDashboard/Settings'
+    | '/oauth/success'
+    | '/payment/result'
+    | '/AdminDashboard'
     | '/ClientDashboard'
   id:
     | '__root__'
@@ -253,6 +341,9 @@ export interface FileRouteTypes {
     | '/refund-policy'
     | '/terms'
     | '/Login'
+    | '/Register'
+    | '/checkout'
+    | '/subscribe'
     | '/AdminDashboard/AdminHome'
     | '/AdminDashboard/AdminSettings'
     | '/AdminDashboard/Analytics'
@@ -262,9 +353,14 @@ export interface FileRouteTypes {
     | '/AdminDashboard/EditiedResponse'
     | '/ClientDashboard/Accounts'
     | '/ClientDashboard/Agents'
+    | '/ClientDashboard/Analytics'
     | '/ClientDashboard/Billing'
+    | '/ClientDashboard/Locations'
     | '/ClientDashboard/Reviews'
     | '/ClientDashboard/Settings'
+    | '/oauth/success'
+    | '/payment/result'
+    | '/AdminDashboard/'
     | '/ClientDashboard/'
   fileRoutesById: FileRoutesById
 }
@@ -276,10 +372,36 @@ export interface RootRouteChildren {
   RefundPolicyRouteRoute: typeof RefundPolicyRouteRoute
   TermsRouteRoute: typeof TermsRouteRoute
   LoginRoute: typeof LoginRoute
+  RegisterRoute: typeof RegisterRoute
+  CheckoutRoute: typeof CheckoutRoute
+  SubscribeRoute: typeof SubscribeRoute
+  OauthSuccessRoute: typeof OauthSuccessRoute
+  PaymentResultRoute: typeof PaymentResultRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/subscribe': {
+      id: '/subscribe'
+      path: '/subscribe'
+      fullPath: '/subscribe'
+      preLoaderRoute: typeof SubscribeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/checkout': {
+      id: '/checkout'
+      path: '/checkout'
+      fullPath: '/checkout'
+      preLoaderRoute: typeof CheckoutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/Register': {
+      id: '/Register'
+      path: '/Register'
+      fullPath: '/Register'
+      preLoaderRoute: typeof RegisterRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/Login': {
       id: '/Login'
       path: '/Login'
@@ -336,6 +458,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ClientDashboardIndexRouteImport
       parentRoute: typeof ClientDashboardRouteRoute
     }
+    '/AdminDashboard/': {
+      id: '/AdminDashboard/'
+      path: '/'
+      fullPath: '/AdminDashboard/'
+      preLoaderRoute: typeof AdminDashboardIndexRouteImport
+      parentRoute: typeof AdminDashboardRouteRoute
+    }
+    '/payment/result': {
+      id: '/payment/result'
+      path: '/payment/result'
+      fullPath: '/payment/result'
+      preLoaderRoute: typeof PaymentResultRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/oauth/success': {
+      id: '/oauth/success'
+      path: '/oauth/success'
+      fullPath: '/oauth/success'
+      preLoaderRoute: typeof OauthSuccessRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/ClientDashboard/Settings': {
       id: '/ClientDashboard/Settings'
       path: '/Settings'
@@ -350,11 +493,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ClientDashboardReviewsRouteImport
       parentRoute: typeof ClientDashboardRouteRoute
     }
+    '/ClientDashboard/Locations': {
+      id: '/ClientDashboard/Locations'
+      path: '/Locations'
+      fullPath: '/ClientDashboard/Locations'
+      preLoaderRoute: typeof ClientDashboardLocationsRouteImport
+      parentRoute: typeof ClientDashboardRouteRoute
+    }
     '/ClientDashboard/Billing': {
       id: '/ClientDashboard/Billing'
       path: '/Billing'
       fullPath: '/ClientDashboard/Billing'
       preLoaderRoute: typeof ClientDashboardBillingRouteImport
+      parentRoute: typeof ClientDashboardRouteRoute
+    }
+    '/ClientDashboard/Analytics': {
+      id: '/ClientDashboard/Analytics'
+      path: '/Analytics'
+      fullPath: '/ClientDashboard/Analytics'
+      preLoaderRoute: typeof ClientDashboardAnalyticsRouteImport
       parentRoute: typeof ClientDashboardRouteRoute
     }
     '/ClientDashboard/Agents': {
@@ -431,6 +588,7 @@ interface AdminDashboardRouteRouteChildren {
   AdminDashboardContentRoute: typeof AdminDashboardContentRoute
   AdminDashboardDeletedResponseRoute: typeof AdminDashboardDeletedResponseRoute
   AdminDashboardEditiedResponseRoute: typeof AdminDashboardEditiedResponseRoute
+  AdminDashboardIndexRoute: typeof AdminDashboardIndexRoute
 }
 
 const AdminDashboardRouteRouteChildren: AdminDashboardRouteRouteChildren = {
@@ -441,6 +599,7 @@ const AdminDashboardRouteRouteChildren: AdminDashboardRouteRouteChildren = {
   AdminDashboardContentRoute: AdminDashboardContentRoute,
   AdminDashboardDeletedResponseRoute: AdminDashboardDeletedResponseRoute,
   AdminDashboardEditiedResponseRoute: AdminDashboardEditiedResponseRoute,
+  AdminDashboardIndexRoute: AdminDashboardIndexRoute,
 }
 
 const AdminDashboardRouteRouteWithChildren =
@@ -449,7 +608,9 @@ const AdminDashboardRouteRouteWithChildren =
 interface ClientDashboardRouteRouteChildren {
   ClientDashboardAccountsRoute: typeof ClientDashboardAccountsRoute
   ClientDashboardAgentsRoute: typeof ClientDashboardAgentsRoute
+  ClientDashboardAnalyticsRoute: typeof ClientDashboardAnalyticsRoute
   ClientDashboardBillingRoute: typeof ClientDashboardBillingRoute
+  ClientDashboardLocationsRoute: typeof ClientDashboardLocationsRoute
   ClientDashboardReviewsRoute: typeof ClientDashboardReviewsRoute
   ClientDashboardSettingsRoute: typeof ClientDashboardSettingsRoute
   ClientDashboardIndexRoute: typeof ClientDashboardIndexRoute
@@ -458,7 +619,9 @@ interface ClientDashboardRouteRouteChildren {
 const ClientDashboardRouteRouteChildren: ClientDashboardRouteRouteChildren = {
   ClientDashboardAccountsRoute: ClientDashboardAccountsRoute,
   ClientDashboardAgentsRoute: ClientDashboardAgentsRoute,
+  ClientDashboardAnalyticsRoute: ClientDashboardAnalyticsRoute,
   ClientDashboardBillingRoute: ClientDashboardBillingRoute,
+  ClientDashboardLocationsRoute: ClientDashboardLocationsRoute,
   ClientDashboardReviewsRoute: ClientDashboardReviewsRoute,
   ClientDashboardSettingsRoute: ClientDashboardSettingsRoute,
   ClientDashboardIndexRoute: ClientDashboardIndexRoute,
@@ -475,6 +638,11 @@ const rootRouteChildren: RootRouteChildren = {
   RefundPolicyRouteRoute: RefundPolicyRouteRoute,
   TermsRouteRoute: TermsRouteRoute,
   LoginRoute: LoginRoute,
+  RegisterRoute: RegisterRoute,
+  CheckoutRoute: CheckoutRoute,
+  SubscribeRoute: SubscribeRoute,
+  OauthSuccessRoute: OauthSuccessRoute,
+  PaymentResultRoute: PaymentResultRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

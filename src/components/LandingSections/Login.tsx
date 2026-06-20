@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { useRouter } from '@tanstack/react-router'
 import { Clock3, Eye, EyeOff, Shield, Sparkles, Star, Bot } from 'lucide-react'
 import logo from '../../assets/logo.png'
 import googleImage from '../../assets/google.png'
@@ -6,7 +7,12 @@ import avatar from '../../assets/avatar.png'
 import mapsImage from '../../assets/maps.png'
 import { loginUser, signupUser } from '../../services/authServices'
 import { useLocale } from '../../contexts/LocaleContext'
-import type { Locale } from '../../locales'
+import LocaleToggle from '../UI/LocaleToggle'
+
+/** Only allow same-origin paths — reject absolute and protocol-relative URLs. */
+function isSafePath(path: string): boolean {
+  return path.startsWith('/') && !path.startsWith('//')
+}
 
 const API_URL = import.meta.env.VITE_API_URL
 
@@ -277,10 +283,14 @@ function PhoneField({
   )
 }
 
-export default function LoginPage() {
-  const { t, dir, isRTL, locale, setLocale } = useLocale()
-  const toggleLocale = () => setLocale((locale === 'ar' ? 'en' : 'ar') as Locale)
-  const [mode, setMode] = useState<AuthMode>('signup')
+type LoginPageProps = {
+  initialMode?: AuthMode
+}
+
+export default function LoginPage({ initialMode = 'login' }: LoginPageProps) {
+  const { t, dir, isRTL } = useLocale()
+  const router = useRouter()
+  const mode = initialMode
   const [loginForm, setLoginForm] = useState<LoginForm>(LOGIN_INITIAL)
   const [signupForm, setSignupForm] = useState<SignupForm>(SIGNUP_INITIAL)
   const [loginErrors, setLoginErrors] = useState<FormErrors>({})
@@ -329,7 +339,15 @@ export default function LoginPage() {
       localStorage.setItem('token', response.data.accessToken)
       localStorage.setItem('user', JSON.stringify(response.data.user))
       const role = response.data.user?.role
-      window.location.href = (role === 'admin' || role === 'superAdmin') ? '/AdminDashboard' : '/ClientDashboard'
+      if (role === 'admin' || role === 'superAdmin') {
+        router.navigate({ to: '/AdminDashboard', replace: true })
+      } else {
+        const params = new URLSearchParams(window.location.search)
+        const raw = params.get('redirect')
+        const decoded = raw ? decodeURIComponent(raw) : null
+        const target = decoded && isSafePath(decoded) ? decoded : '/ClientDashboard'
+        router.navigate({ href: target, replace: true })
+      }
     } catch (error) {
       setServerError(error instanceof Error ? error.message : t.login.errors.loginFailed)
     } finally {
@@ -353,7 +371,15 @@ export default function LoginPage() {
       localStorage.setItem('token', response.data.accessToken)
       localStorage.setItem('user', JSON.stringify(response.data.user))
       const role = response.data.user?.role
-      window.location.href = (role === 'admin' || role === 'superAdmin') ? '/AdminDashboard' : '/ClientDashboard'
+      if (role === 'admin' || role === 'superAdmin') {
+        router.navigate({ to: '/AdminDashboard', replace: true })
+      } else {
+        const params = new URLSearchParams(window.location.search)
+        const raw = params.get('redirect')
+        const decoded = raw ? decodeURIComponent(raw) : null
+        const target = decoded && isSafePath(decoded) ? decoded : '/ClientDashboard'
+        router.navigate({ href: target, replace: true })
+      }
     } catch (error) {
       setServerError(error instanceof Error ? error.message : t.login.errors.signupFailed)
     } finally {
@@ -362,23 +388,18 @@ export default function LoginPage() {
   }
 
   const handleModeSwitch = () => {
-    setServerError('')
-    setLoginErrors({})
-    setSignupErrors({})
-    setMode((prev) => (prev === 'login' ? 'signup' : 'login'))
+    const params = new URLSearchParams(window.location.search)
+    const redirectParam = params.get('redirect')
+    const query = redirectParam ? `?redirect=${encodeURIComponent(redirectParam)}` : ''
+    const target = mode === 'login' ? `/Register${query}` : `/Login${query}`
+    window.location.replace(target)
   }
 
   return (
     <section dir={dir} className="min-h-screen bg-[#F4FAF8] px-4 py-8 sm:px-6 lg:px-8">
       <div className="mb-8 flex items-center justify-center gap-4">
         <img src={logo} alt="Bariq AI" className="w-[80px] sm:w-[160px] lg:w-[180px] h-auto object-contain" />
-        <button
-          type="button"
-          onClick={toggleLocale}
-          className="inline-flex h-9 items-center justify-center rounded-lg border border-slate-200 bg-white px-3 text-xs font-bold text-slate-600 shadow-sm transition hover:bg-slate-50"
-        >
-          {locale === 'ar' ? 'EN' : 'ع'}
-        </button>
+        <LocaleToggle />
       </div>
 
       <div className="mx-auto flex w-full max-w-[1180px] items-center justify-center">

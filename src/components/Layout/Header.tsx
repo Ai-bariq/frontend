@@ -2,11 +2,13 @@ import { Link } from '@tanstack/react-router'
 import { Menu, X } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import logo from '../../assets/logo.png'
-import messageIcon from '../../assets/message.svg'
+import whatsappIcon from '../../assets/whatsapp.svg'
+import { whatsappUrl } from '../../config'
 import { useLocale } from '../../contexts/LocaleContext'
+import LocaleToggle from '../UI/LocaleToggle'
 
 export default function Header() {
-  const { t, locale, setLocale, isRTL } = useLocale()
+  const { t, isRTL } = useLocale()
   const [isOpen, setIsOpen] = useState(false)
 
   const navLinks = [
@@ -53,24 +55,20 @@ export default function Header() {
         </nav>
 
         <div className="hidden items-center gap-3 lg:flex xl:gap-4">
-          <button
-            type="button"
-            onClick={() => setLocale(locale === 'ar' ? 'en' : 'ar')}
-            className="inline-flex h-8 items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-600 shadow-sm transition hover:bg-slate-50"
-            aria-label="Toggle language"
-          >
-            <span>{locale === 'ar' ? 'EN' : 'ع'}</span>
-          </button>
+          <LocaleToggle />
 
-          <button
-            type="button"
-            className="inline-flex h-8 items-center gap-2 rounded-full border border-teal-100 bg-teal-50 px-3 text-sm font-semibold text-primary shadow-md transition hover:bg-teal-200 hover:text-white"
+          <a
+            href={whatsappUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="btn-gradient font-black inline-flex items-center justify-center gap-2 bg-transparent text-primary border border-primary transition-transform hover:scale-105"
+            style={{ background: 'transparent', color: 'var(--color-primary, #0d9488)' }}
           >
-            <img src={messageIcon} alt="message" className="h-4 w-4" />
+            <img src={whatsappIcon} alt="WhatsApp" className="h-4 w-4 [filter:invert(44%)_sepia(72%)_saturate(400%)_hue-rotate(120deg)_brightness(95%)]" />
             {t.nav.support}
-          </button>
+          </a>
 
-          <Link to="/login" className="btn-gradient font-black inline-flex items-center justify-center">
+          <Link to="/Login" className="btn-gradient font-black inline-flex items-center justify-center">
             {t.nav.startNow}
           </Link>
         </div>
@@ -107,23 +105,20 @@ export default function Header() {
           </nav>
 
           <div className="mt-2 flex flex-col gap-3">
-            <button
-              type="button"
-              onClick={() => setLocale(locale === 'ar' ? 'en' : 'ar')}
-              className="inline-flex h-11 items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-600 transition hover:bg-slate-50"
-            >
-              {locale === 'ar' ? 'Switch to English' : 'التبديل للعربية'}
-            </button>
+            <LocaleToggle />
 
-            <button
-              type="button"
-              className="inline-flex h-11 items-center justify-center gap-2 rounded-full border border-teal-200 bg-teal-50 px-4 text-sm font-semibold text-primary shadow-sm transition hover:bg-teal-200 hover:text-white"
+            <a
+              href={whatsappUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn-gradient font-black inline-flex items-center justify-center gap-2 bg-transparent text-primary border border-primary transition-transform hover:scale-105"
+              style={{ background: 'transparent', color: 'var(--color-primary, #0d9488)' }}
             >
-              <img src={messageIcon} alt="message" className="h-4 w-4" />
+              <img src={whatsappIcon} alt="WhatsApp" className="h-4 w-4 [filter:invert(44%)_sepia(72%)_saturate(400%)_hue-rotate(120deg)_brightness(95%)]" />
               {t.nav.support}
-            </button>
+            </a>
 
-            <Link to="/login" className="btn-gradient inline-flex items-center justify-center">
+            <Link to="/Login" className="btn-gradient inline-flex items-center justify-center">
               {t.nav.startNow}
             </Link>
           </div>

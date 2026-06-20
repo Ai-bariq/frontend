@@ -33,7 +33,7 @@ export default function AdminSidebar({
 
   const navItems = [
     { label: t.adminSidebar.nav.home, to: '/AdminDashboard/AdminHome', icon: LayoutDashboard },
-    { label: t.adminSidebar.nav.clients, to: '/AdminDashboard/clients', icon: Building2 },
+    { label: t.adminSidebar.nav.clients, to: '/AdminDashboard/Clients', icon: Building2 },
     { label: t.adminSidebar.nav.editedResponses, to: '/AdminDashboard/EditiedResponse', icon: SquarePen },
     { label: t.adminSidebar.nav.deletedResponses, to: '/AdminDashboard/DeletedResponse', icon: Trash2 },
     { label: t.adminSidebar.nav.settings, to: '/AdminDashboard/AdminSettings', icon: Settings },
@@ -94,7 +94,12 @@ export default function AdminSidebar({
                 <Link
                   key={item.to}
                   to={item.to}
-                  onClick={onClose}
+                  onClick={() => {
+                    if (item.to === '/AdminDashboard/AdminHome') {
+                      window.dispatchEvent(new CustomEvent('admin:refresh'))
+                    }
+                    onClose()
+                  }}
                   className={`group flex items-center gap-3 rounded-2xl px-3 py-3 text-sm font-bold transition ${
                     isActive
                       ? 'bg-gradient-to-r from-teal-600 to-emerald-500 text-white shadow-[0_12px_24px_rgba(13,148,136,0.18)]'

@@ -67,7 +67,7 @@ export default function HowItWorks() {
 
         <div className="mt-12 flex justify-center">
           <Link
-            to="/login"
+            to="/Login"
             className="inline-flex min-h-14 items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-teal-600 to-emerald-500 px-14 py-3 text-base font-bold text-white shadow-[0_14px_30px_rgba(13,148,136,0.22)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_18px_34px_rgba(13,148,136,0.28)]"
           >
             <ArrowIcon className="h-4 w-4" />

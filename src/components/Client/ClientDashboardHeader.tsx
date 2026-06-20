@@ -3,13 +3,12 @@ import { LogOut, LifeBuoy, MapPin, Plus, ChevronDown, User } from 'lucide-react'
 import { useCurrentUser } from '../../utils/useCurrentUser'
 import { getAvatar } from '../../utils/getAvatar'
 import { useLocale } from '../../contexts/LocaleContext'
-import type { Locale } from '../../locales'
+import LocaleToggle from '../UI/LocaleToggle'
 
 const API_URL = import.meta.env.VITE_API_URL
 
 export default function ClientDashboardHeader() {
-  const { t, isRTL, locale, setLocale } = useLocale()
-  const toggleLocale = () => setLocale((locale === 'ar' ? 'en' : 'ar') as Locale)
+  const { t, isRTL } = useLocale()
   const [isOpen, setIsOpen] = useState(false)
   const user = useCurrentUser()
   const avatarUrl = getAvatar(user?.avatar ?? null)
@@ -27,7 +26,7 @@ export default function ClientDashboardHeader() {
     } finally {
       localStorage.removeItem('token')
       localStorage.removeItem('user')
-      window.location.href = '/login'
+      window.location.href = '/'
     }
   }
 
@@ -111,13 +110,7 @@ export default function ClientDashboardHeader() {
 
         {/* Add Location + locale toggle */}
         <div className={`flex items-center gap-3 ${isRTL ? 'order-1' : 'order-2'}`}>
-          <button
-            type="button"
-            onClick={toggleLocale}
-            className="inline-flex h-9 items-center justify-center rounded-lg border border-slate-200 bg-white px-3 text-xs font-bold text-slate-600 transition hover:bg-slate-50"
-          >
-            {locale === 'ar' ? 'EN' : 'ع'}
-          </button>
+          <LocaleToggle />
 
           <button
             type="button"

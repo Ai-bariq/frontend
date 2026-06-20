@@ -1,22 +1,29 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useLocale } from '../../contexts/LocaleContext'
+import { apiRequest } from '../../services/api'
 
 export const Route = createFileRoute('/AdminDashboard/AdminSettings')({
   component: AdminSettingsPage,
 })
 
 type AdminProfile = {
+  id: string
   name: string
   email: string
+  role: string
 }
 
-const fakeAdmin: AdminProfile = {
-  name: 'Admin User',
-  email: 'admin@bareeq.ai',
-}
-
-function validateStrongPassword(password: string, p: { req8chars: string; reqUppercase: string; reqLowercase: string; reqNumber: string; reqSpecial: string }) {
+function validateStrongPassword(
+  password: string,
+  p: {
+    req8chars: string
+    reqUppercase: string
+    reqLowercase: string
+    reqNumber: string
+    reqSpecial: string
+  },
+) {
   const errors: string[] = []
   if (password.length < 8) errors.push(p.req8chars)
   if (!/[A-Z]/.test(password)) errors.push(p.reqUppercase)
@@ -32,49 +39,115 @@ export default function AdminSettingsPage() {
   const textAlign = isRTL ? 'text-right' : 'text-left'
   const justifyEnd = isRTL ? 'justify-end' : 'justify-start'
 
-  const [name, setName] = useState(fakeAdmin.name)
-  const [email] = useState(fakeAdmin.email)
+  const [profile, setProfile] = useState<AdminProfile | null>(null)
+  const [loadingProfile, setLoadingProfile] = useState(true)
+  const [profileError, setProfileError] = useState('')
+  const [name, setName] = useState('')
   const [showPasswordFields, setShowPasswordFields] = useState(false)
   const [currentPassword, setCurrentPassword] = useState('')
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [nameMessage, setNameMessage] = useState('')
+  const [nameSaving, setNameSaving] = useState(false)
   const [passwordMessage, setPasswordMessage] = useState('')
   const [passwordErrors, setPasswordErrors] = useState<string[]>([])
-  const [deleteMessage, setDeleteMessage] = useState('')
-  const [deleteConfirmText, setDeleteConfirmText] = useState('')
-  const [showDeleteBox, setShowDeleteBox] = useState(false)
+  const [passwordSaving, setPasswordSaving] = useState(false)
 
-  const handleSaveName = () => {
+  // Load profile on mount
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const token = localStorage.getItem('token')
+        const res = await apiRequest<{ data: AdminProfile }>('/users/me', { token })
+        setProfile(res.data)
+        setName(res.data.name)
+      } catch (err) {
+        setProfileError(err instanceof Error ? err.message : 'Error')
+      } finally {
+        setLoadingProfile(false)
+      }
+    }
+    load()
+  }, [])
+
+  const handleSaveName = async () => {
     if (!name.trim()) { setNameMessage(p.nameEmpty); return }
-    setNameMessage(p.nameSaved)
+    setNameSaving(true)
+    setNameMessage('')
+    try {
+      const token = localStorage.getItem('token')
+      await apiRequest('/users/me', { method: 'PATCH', token, body: { name: name.trim() } })
+      setNameMessage(p.nameSaved)
+    } catch (err) {
+      setNameMessage(err instanceof Error ? err.message : 'Error')
+    } finally {
+      setNameSaving(false)
+    }
   }
 
   const resetPasswordFields = () => {
-    setCurrentPassword(''); setNewPassword(''); setConfirmPassword('')
-    setPasswordMessage(''); setPasswordErrors([])
+    setCurrentPassword('')
+    setNewPassword('')
+    setConfirmPassword('')
+    setPasswordMessage('')
+    setPasswordErrors([])
   }
 
-  const handleChangePassword = () => {
-    setPasswordMessage(''); setPasswordErrors([])
-    if (!currentPassword || !newPassword || !confirmPassword) { setPasswordMessage(p.fillAllFields); return }
+  const handleChangePassword = async () => {
+    setPasswordMessage('')
+    setPasswordErrors([])
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      setPasswordMessage(p.fillAllFields)
+      return
+    }
     const errors = validateStrongPassword(newPassword, p)
     if (errors.length > 0) { setPasswordErrors(errors); return }
     if (newPassword !== confirmPassword) { setPasswordMessage(p.passwordMismatch); return }
     if (currentPassword === newPassword) { setPasswordMessage(p.passwordSameAsCurrent); return }
-    setPasswordMessage(p.passwordUpdated)
-    setCurrentPassword(''); setNewPassword(''); setConfirmPassword(''); setPasswordErrors([])
-    setShowPasswordFields(false)
+
+    setPasswordSaving(true)
+    try {
+      const token = localStorage.getItem('token')
+      await apiRequest('/users/me/password', {
+        method: 'PATCH',
+        token,
+        body: { currentPassword, newPassword },
+      })
+      setPasswordMessage(p.passwordUpdated)
+      resetPasswordFields()
+      setShowPasswordFields(false)
+    } catch (err) {
+      setPasswordMessage(err instanceof Error ? err.message : 'Error')
+    } finally {
+      setPasswordSaving(false)
+    }
   }
 
-  const handleDeleteAccount = () => {
-    if (deleteConfirmText !== 'DELETE') { setDeleteMessage(p.deleteWrongText); return }
-    setDeleteMessage(p.deleteSuccess)
+  if (loadingProfile) {
+    return (
+      <section dir={dir} className="flex min-h-screen items-center justify-center bg-slate-50">
+        <svg className="h-5 w-5 animate-spin text-slate-400" viewBox="0 0 24 24" fill="none">
+          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+        </svg>
+      </section>
+    )
+  }
+
+  if (profileError || !profile) {
+    return (
+      <section dir={dir} className="flex min-h-screen items-center justify-center bg-slate-50 p-4">
+        <div className="rounded-2xl border border-red-200 bg-white px-6 py-5 text-center text-sm text-red-600">
+          {profileError || 'Unable to load profile'}
+        </div>
+      </section>
+    )
   }
 
   return (
     <section dir={dir} className="min-h-screen bg-slate-50 p-4 md:p-6">
       <div className="mx-auto max-w-4xl space-y-6">
+        {/* Title */}
         <div className="rounded-2xl border border-slate-200 bg-white p-5">
           <div className={textAlign}>
             <h1 className="text-2xl font-extrabold text-slate-900">{p.title}</h1>
@@ -82,6 +155,7 @@ export default function AdminSettingsPage() {
           </div>
         </div>
 
+        {/* Account section */}
         <div className="rounded-2xl border border-slate-200 bg-white p-5">
           <div className={`mb-5 ${textAlign}`}>
             <h2 className="text-lg font-bold text-slate-900">{p.accountSection}</h2>
@@ -103,15 +177,19 @@ export default function AdminSettingsPage() {
               <label className="mb-2 block text-sm font-medium text-slate-700">{p.emailLabel}</label>
               <input
                 type="email"
-                value={email}
+                value={profile.email}
                 disabled
                 className={`w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 ${textAlign} text-sm text-slate-500 outline-none`}
               />
             </div>
 
             <div className={`flex ${justifyEnd}`}>
-              <button onClick={handleSaveName} className="rounded-xl bg-slate-900 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-slate-800">
-                {p.saveChanges}
+              <button
+                onClick={handleSaveName}
+                disabled={nameSaving}
+                className="rounded-xl bg-slate-900 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-slate-800 disabled:opacity-60"
+              >
+                {nameSaving ? '...' : p.saveChanges}
               </button>
             </div>
 
@@ -123,6 +201,7 @@ export default function AdminSettingsPage() {
           </div>
         </div>
 
+        {/* Password section */}
         <div className="rounded-2xl border border-slate-200 bg-white p-5">
           <div className={`mb-5 ${textAlign}`}>
             <h2 className="text-lg font-bold text-slate-900">{p.passwordSection}</h2>
@@ -185,7 +264,7 @@ export default function AdminSettingsPage() {
                 <div className={`rounded-xl border border-red-200 bg-red-50 p-4 ${textAlign}`}>
                   <p className="mb-2 text-sm font-medium text-red-700">{p.weakPassword}</p>
                   <ul className="space-y-1 text-sm text-red-600">
-                    {passwordErrors.map((error) => <li key={error}>• {error}</li>)}
+                    {passwordErrors.map((e) => <li key={e}>• {e}</li>)}
                   </ul>
                 </div>
               )}
@@ -205,68 +284,18 @@ export default function AdminSettingsPage() {
                 </button>
                 <button
                   onClick={handleChangePassword}
-                  className="rounded-xl bg-slate-900 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-slate-800"
+                  disabled={passwordSaving}
+                  className="rounded-xl bg-slate-900 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-slate-800 disabled:opacity-60"
                 >
-                  {p.updatePassword}
+                  {passwordSaving ? '...' : p.updatePassword}
                 </button>
               </div>
             </div>
           )}
         </div>
 
-        <div className="rounded-2xl border border-red-200 bg-white p-5">
-          <div className={`mb-5 ${textAlign}`}>
-            <h2 className="text-lg font-bold text-red-700">{p.deleteSection}</h2>
-            <p className="mt-1 text-sm text-slate-500">{p.deleteSubtitle}</p>
-          </div>
-
-          {!showDeleteBox ? (
-            <div className={`flex ${justifyEnd}`}>
-              <button
-                onClick={() => { setShowDeleteBox(true); setDeleteMessage('') }}
-                className="rounded-xl border border-red-200 bg-red-50 px-5 py-2.5 text-sm font-medium text-red-700 transition hover:bg-red-100"
-              >
-                {p.deleteAccount}
-              </button>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              <div className={textAlign}>
-                <p className="mb-2 text-sm text-slate-600">
-                  {p.deleteConfirmPrompt}
-                  <span className="mx-1 font-bold text-slate-900">DELETE</span>
-                </p>
-                <input
-                  type="text"
-                  value={deleteConfirmText}
-                  onChange={(e) => { setDeleteConfirmText(e.target.value); setDeleteMessage('') }}
-                  className={`w-full rounded-xl border border-red-200 px-4 py-3 ${textAlign} text-sm outline-none focus:border-red-400`}
-                />
-              </div>
-
-              <div className={`flex ${justifyEnd} gap-2`}>
-                <button
-                  onClick={() => { setShowDeleteBox(false); setDeleteConfirmText(''); setDeleteMessage('') }}
-                  className="rounded-xl border border-slate-200 px-5 py-2.5 text-sm font-medium text-slate-600 transition hover:bg-slate-50"
-                >
-                  {p.cancel}
-                </button>
-                <button
-                  onClick={handleDeleteAccount}
-                  className="rounded-xl bg-red-600 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-red-700"
-                >
-                  {p.confirmDelete}
-                </button>
-              </div>
-
-              {deleteMessage && (
-                <p className={`${textAlign} text-sm ${deleteMessage === p.deleteSuccess ? 'text-green-600' : 'text-red-600'}`}>
-                  {deleteMessage}
-                </p>
-              )}
-            </div>
-          )}
-        </div>
+        {/* Delete account section intentionally hidden for admin accounts.
+            Account deactivation is a superAdmin action only. */}
       </div>
     </section>
   )

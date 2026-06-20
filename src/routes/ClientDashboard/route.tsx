@@ -1,7 +1,16 @@
-import { createFileRoute, Outlet } from '@tanstack/react-router'
+import { createFileRoute, redirect } from '@tanstack/react-router'
 import ClientDashboardLayout from '../../components/Client/ClientDashboardLayout'
+import { isAuthenticated } from '../../utils/auth'
 
 export const Route = createFileRoute('/ClientDashboard')({
+  beforeLoad: ({ location }) => {
+    if (!isAuthenticated()) {
+      throw redirect({
+        to: '/Login',
+        search: { redirect: location.href },
+      })
+    }
+  },
   head: () => ({
     meta: [
       {
@@ -13,9 +22,5 @@ export const Route = createFileRoute('/ClientDashboard')({
 })
 
 function ClientDashboardRouteLayout() {
-  return (
-    <ClientDashboardLayout>
-      <Outlet />
-    </ClientDashboardLayout>
-  )
+  return <ClientDashboardLayout />
 }

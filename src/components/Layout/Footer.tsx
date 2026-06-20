@@ -1,6 +1,8 @@
 import { MapPin, ShieldCheck } from 'lucide-react'
+import { Link } from '@tanstack/react-router'
 import logo from '../../assets/logo.png'
 import whatsappIcon from '../../assets/whatsapp.svg'
+import { whatsappUrl } from '../../config'
 import type { ReactNode } from 'react'
 import { useLocale } from '../../contexts/LocaleContext'
 
@@ -38,11 +40,13 @@ export default function Footer() {
           {/* Brand column */}
           <div className={`flex max-w-[420px] flex-col ${itemsAlign} ${textAlign}`}>
             <div className={`flex w-full ${justifyStart}`}>
-              <img
-                src={logo}
-                alt="Bariq Ai"
-                className="h-14 w-auto object-contain"
-              />
+              <Link to="/" aria-label="Bariq Home">
+                <img
+                  src={logo}
+                  alt="Bariq Ai"
+                  className="h-14 w-auto object-contain"
+                />
+              </Link>
             </div>
 
             <p className="mt-4 max-w-[420px] text-[14px] leading-[1.9] text-[#A5B4CF] sm:text-[15px]">
@@ -50,10 +54,12 @@ export default function Footer() {
             </p>
 
             <a
-              href="tel:+966539300197"
+              href={whatsappUrl}
+              target="_blank"
+              rel="noopener noreferrer"
               className="mt-4 inline-flex items-center gap-2 text-[14px] font-medium text-[#D7E2F2] transition-colors duration-200 hover:text-[#18C3B3]"
             >
-              <span>+966 539300197</span>
+              <span dir="ltr">+966 539300197</span>
               <img src={whatsappIcon} alt="WhatsApp" className="h-[18px] w-[18px] shrink-0 object-contain" />
             </a>
           </div>

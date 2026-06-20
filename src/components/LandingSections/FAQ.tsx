@@ -1,5 +1,6 @@
 import { ChevronDown } from 'lucide-react'
 import { useId, useRef, useState } from 'react'
+import { supportEmail } from '../../config'
 import { useLocale } from '../../contexts/LocaleContext'
 
 function FaqAccordionItem({
@@ -84,10 +85,10 @@ export default function FAQ() {
         <p className="mt-10 text-center text-[18px] leading-8 text-[#667085]">
           {t.faq.contactPrefix}{' '}
           <a
-            href={`mailto:${t.faq.contactEmail}`}
+            href={`mailto:${supportEmail}`}
             className="font-semibold text-[#0EA5A4] transition-colors hover:text-[#0B8E8D]"
           >
-            {t.faq.contactEmail}
+            {supportEmail}
           </a>
         </p>
       </div>

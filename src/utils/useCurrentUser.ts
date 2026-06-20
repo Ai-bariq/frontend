@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react'
+import { AUTH_UNAUTHORIZED_EVENT } from '../services/api'
+import { clearAuthStorage } from './auth'
 
 const API_URL = import.meta.env.VITE_API_URL
 
-type CurrentUser = {
+export type CurrentUser = {
   id: string
   name: string
   email: string
@@ -17,16 +19,27 @@ export function useCurrentUser() {
 
   useEffect(() => {
     const fetchCurrentUser = async () => {
-      try {
-        const token = localStorage.getItem('token')
+      const token = localStorage.getItem('token')
+      if (!token) {
+        setUser(null)
+        return
+      }
 
+      try {
         const res = await fetch(`${API_URL}/users/me`, {
           credentials: 'include',
           headers: {
             'Content-Type': 'application/json',
-            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+            Authorization: `Bearer ${token}`,
           },
         })
+
+        if (res.status === 401) {
+          clearAuthStorage()
+          window.dispatchEvent(new CustomEvent(AUTH_UNAUTHORIZED_EVENT))
+          setUser(null)
+          return
+        }
 
         const data = await res.json()
 

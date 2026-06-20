@@ -23,8 +23,6 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
       <AdminHeader
         isSidebarOpen={isSidebarOpen}
         onToggleSidebar={() => setIsSidebarOpen((prev) => !prev)}
-        adminName="Rehab Elkadim"
-        adminEmail="admin@bariq.ai"
         logo={logo}
       />
 

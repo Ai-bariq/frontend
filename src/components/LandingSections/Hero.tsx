@@ -35,7 +35,7 @@ function TrustedLogos({ label }: { label: string }) {
           <div className="logo-marquee-group" aria-hidden="true">
             {trustedLogos.map((logo) => (
               <div key={`group-b-${logo.name}`} className="logo-item">
-                <img src={logo.src} alt={logo.name} className="h-12 w-auto object-contain sm:h-14" loading="lazy" />
+                <img src={logo.src} alt={logo.name} className="h-16 w-auto object-contain sm:h-20" loading="lazy" />
               </div>
             ))}
           </div>

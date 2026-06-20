@@ -1,12 +1,16 @@
-// src/services/api.ts
-
-const API_URL = import.meta.env.VITE_API_URL;
+const API_URL = import.meta.env.VITE_API_URL
 
 type ApiOptions = {
-  method?: string;
-  body?: unknown;
-  token?: string | null;
-};
+  method?: string
+  body?: unknown
+  token?: string | null
+}
+
+/**
+ * Dispatched when any API call receives a 401.
+ * The root layout listens for this event and redirects to /Login.
+ */
+export const AUTH_UNAUTHORIZED_EVENT = 'auth:unauthorized'
 
 export async function apiRequest<T>(
   endpoint: string,
@@ -19,13 +23,18 @@ export async function apiRequest<T>(
       ...(options.token ? { Authorization: `Bearer ${options.token}` } : {}),
     },
     body: options.body ? JSON.stringify(options.body) : undefined,
-  });
+  })
 
-  const data = await res.json();
-
-  if (!res.ok) {
-    throw new Error(data.message || 'Something went wrong');
+  if (res.status === 401) {
+    window.dispatchEvent(new CustomEvent(AUTH_UNAUTHORIZED_EVENT))
+    throw new Error('Unauthorized')
   }
 
-  return data;
+  const data = await res.json()
+
+  if (!res.ok) {
+    throw new Error(data.message || 'Something went wrong')
+  }
+
+  return data
 }

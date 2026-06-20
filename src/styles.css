@@ -297,7 +297,6 @@ html[lang="ar"] .text-sm {
 /*scrolling logos -- hero section*/
 .logo-marquee-track {
   display: flex;
-  width: max-content;
   animation: logos-scroll 18s linear infinite;
   will-change: transform;
 }
