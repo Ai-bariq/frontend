@@ -1,6 +1,7 @@
 import { http, HttpResponse } from 'msw'
 import { describe, expect, test } from 'vitest'
 import { apiRequest } from '../services/api'
+import { API_URL } from '../services/apiConfig'
 import { clearAuthStorage, hasAdminAccess, isAuthenticated } from '../utils/auth'
 import { getBillingMe, verifyCharge } from '../services/paymentServices'
 import { server } from './setup'
@@ -20,7 +21,7 @@ describe('secure browser session flow', () => {
 
   test('reports an API configuration error instead of parsing an HTML page as JSON', async () => {
     server.use(
-      http.post('http://localhost/api/v1/auth/signup/request-otp', () =>
+      http.post(`${API_URL}/auth/signup/request-otp`, () =>
         new HttpResponse('<meta name="description" content="frontend page">', {
           status: 200,
           headers: { 'Content-Type': 'text/html' },
@@ -54,13 +55,13 @@ describe('secure browser session flow', () => {
   test('rotates the cookie session and retries one unauthorized API call', async () => {
     let calls = 0
     server.use(
-      http.get('http://localhost/api/v1/users/me', () => {
+      http.get(`${API_URL}/users/me`, () => {
         calls += 1
         return calls === 1
           ? HttpResponse.json({ message: 'expired' }, { status: 401 })
           : HttpResponse.json({ data: { id: 'u1' } })
       }),
-      http.post('http://localhost/api/v1/auth/refresh', () =>
+      http.post(`${API_URL}/auth/refresh`, () =>
         HttpResponse.json({ success: true }),
       ),
     )
@@ -73,7 +74,7 @@ describe('secure browser session flow', () => {
 describe('billing API contracts', () => {
   test('billing page reads the real subscription response', async () => {
     server.use(
-      http.get('http://localhost/api/v1/billing/me', () =>
+      http.get(`${API_URL}/billing/me`, () =>
         HttpResponse.json({
           success: true,
           data: {
@@ -92,7 +93,7 @@ describe('billing API contracts', () => {
   test('payment result verification never creates or activates a subscription', async () => {
     let requestedMethod = ''
     server.use(
-      http.get('http://localhost/api/v1/payments/verify/chg_1', ({ request }) => {
+      http.get(`${API_URL}/payments/verify/chg_1`, ({ request }) => {
         requestedMethod = request.method
         return HttpResponse.json({
           success: true,
