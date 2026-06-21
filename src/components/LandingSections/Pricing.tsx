@@ -84,14 +84,7 @@ export default function Pricing() {
   const safeBranches = clampBranches(branches)
   const summary = useMemo(() => buildPricingSummary(safeBranches, billing, t), [safeBranches, billing, t])
 
-  const handleCheckout = () => {
-    const token = localStorage.getItem('token')
-    if (!token) {
-      window.location.href = `/Login?redirect=${encodeURIComponent('/subscribe')}`
-      return
-    }
-    window.location.href = '/subscribe'
-  }
+  const checkoutHref = `/subscribe?billingCycle=${billing}&branchesCount=${safeBranches}`
 
   const billingOptions = [
     { key: 'monthly' as BillingKey, label: t.pricing.billing.monthly },
@@ -206,14 +199,13 @@ export default function Pricing() {
 
             {/* CTA */}
             <div className="mt-3 flex justify-center">
-              <button
-                type="button"
-                onClick={handleCheckout}
+              <a
+                href={checkoutHref}
                 className="inline-flex min-h-12 items-center justify-center gap-2 rounded-lg px-8 py-3 text-base font-bold text-white transition-all duration-300 bg-gradient-to-r from-[#0f9d94] to-[#16a085] shadow-[0_14px_30px_rgba(13,148,136,0.22)] hover:from-[#0d8f87] hover:to-[#128f7d] hover:shadow-[0_18px_34px_rgba(13,148,136,0.32)] hover:-translate-y-[1px]"
               >
                 <ArrowIcon className="h-4 w-4" />
                 <span>{t.pricing.cta}</span>
-              </button>
+              </a>
             </div>
 
             <p className="mt-2 text-center text-[14px] text-slate-400">{t.pricing.cancel}</p>

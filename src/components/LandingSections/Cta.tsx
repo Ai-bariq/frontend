@@ -42,7 +42,7 @@ export default function Cta() {
 
           <div className="mt-8 flex justify-center">
             <Link
-              to="/Login"
+              to="/Register"
               className="inline-flex min-h-14 items-center justify-center gap-2 rounded-xl px-8 py-4 text-[20px] font-bold text-white transition-all duration-300 bg-gradient-to-r from-[#0ea5a4] to-[#10b981] shadow-[0_16px_30px_rgba(16,185,129,0.22)] hover:from-[#0d9488] hover:to-[#0f9f72] hover:-translate-y-[1px] hover:shadow-[0_20px_36px_rgba(16,185,129,0.28)]"
             >
               <Sparkles className="h-4 w-4 shrink-0" />

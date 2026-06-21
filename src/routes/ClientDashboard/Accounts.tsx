@@ -251,6 +251,11 @@ function AccountsPage() {
   ).length
   const allowedCount = billing?.subscription?.branchesCount ?? 0
 
+  const refreshLocations = async () => {
+    await apiRequest('/zernio/sync-reviews', { method: 'POST' }).catch(() => null)
+    await loadDashboardData()
+  }
+
   return (
     <section dir="rtl" className="min-h-[calc(100vh-80px)] bg-white">
       <div className="px-6 py-8">
@@ -267,6 +272,15 @@ function AccountsPage() {
             <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-bold text-slate-700">
               المواقع المتصلة: {connectedCount} من {allowedCount}
             </div>
+            <button
+              type="button"
+              disabled={loading}
+              onClick={() => void refreshLocations()}
+              className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold text-slate-700 hover:bg-slate-50 disabled:cursor-wait disabled:opacity-60"
+            >
+              <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+              تحديث
+            </button>
             <button
               type="button"
               disabled={

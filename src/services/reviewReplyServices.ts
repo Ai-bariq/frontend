@@ -9,6 +9,7 @@ export type ReplyStatus =
   | 'failed'
   | 'rejected'
   | 'superseded'
+  | 'deleted'
 
 /** Virtual status for reviews that have a Google owner reply but no ReviewReply draft yet */
 export type DashboardStatus = ReplyStatus | 'external_reply_detected'
@@ -118,7 +119,7 @@ export function getDashboardStatus(row: DashboardRow): DashboardStatus {
 export function getDisplayStatus(row: DashboardRow): DisplayStatus {
   const s = getDashboardStatus(row)
   if (s === 'published') return 'published'
-  if (s === 'rejected') return 'deleted'
+  if (s === 'rejected' || s === 'deleted') return 'deleted'
   if (s === 'failed') return 'failed'
   return 'pending' // pending_approval, approved, publishing, external_reply_detected, draft, superseded
 }

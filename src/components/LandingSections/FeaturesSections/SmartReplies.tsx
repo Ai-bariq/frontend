@@ -117,7 +117,7 @@ export default function SmartRepliesSection() {
         </div>
 
         <div className={STYLES.smartReplies.ctaWrap}>
-          <Link to="/Login" className={STYLES.button.gradient}>
+          <Link to="/Register" className={STYLES.button.gradient}>
             <ArrowIcon className={STYLES.button.icon} />
             <span>{t.features.smartReplies.ctaLabel}</span>
           </Link>

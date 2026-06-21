@@ -68,7 +68,7 @@ export default function Header() {
             {t.nav.support}
           </a>
 
-          <Link to="/Login" className="btn-gradient font-black inline-flex items-center justify-center">
+          <Link to="/Register" className="btn-gradient font-black inline-flex items-center justify-center">
             {t.nav.startNow}
           </Link>
         </div>
@@ -118,7 +118,7 @@ export default function Header() {
               {t.nav.support}
             </a>
 
-            <Link to="/Login" className="btn-gradient inline-flex items-center justify-center">
+            <Link to="/Register" className="btn-gradient inline-flex items-center justify-center">
               {t.nav.startNow}
             </Link>
           </div>

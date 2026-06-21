@@ -676,7 +676,7 @@ function useRevealOnScroll() {
 
 function GradientButton({ children }: { children: React.ReactNode }) {
   return (
-    <Link to="/Login" className={STYLES.button.gradient}>
+    <Link to="/Register" className={STYLES.button.gradient}>
       <ArrowLeft className={STYLES.button.icon} />
       <span>{children}</span>
     </Link>

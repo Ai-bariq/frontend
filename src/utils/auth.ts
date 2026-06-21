@@ -5,11 +5,14 @@
  * must not render protected content without a cookie-based check.
  */
 export function isAuthenticated(): boolean {
-  if (typeof window === 'undefined') return false
+  // SSR cannot read the API host's HTTP-only cookie. Defer enforcement to the
+  // browser/API instead of incorrectly redirecting valid sessions on reload.
+  if (typeof window === 'undefined') return true
   return !!localStorage.getItem('user')
 }
 
 export function hasAdminAccess(): boolean {
+  if (typeof window === 'undefined') return true
   if (!isAuthenticated()) return false
 
   try {

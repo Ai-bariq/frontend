@@ -63,9 +63,14 @@ function AppShell() {
   const router = useRouter()
 
   useEffect(() => {
-    const handleUnauthorized = () => {
+    const handleUnauthorized = (event: Event) => {
       clearAuthStorage()
-      router.navigate({ to: '/Login' })
+      const redirect = (event as CustomEvent<{ redirect?: string }>).detail
+        ?.redirect
+      router.navigate({
+        to: '/Login',
+        search: redirect ? { redirect } : undefined,
+      })
     }
     window.addEventListener(AUTH_UNAUTHORIZED_EVENT, handleUnauthorized)
     return () => window.removeEventListener(AUTH_UNAUTHORIZED_EVENT, handleUnauthorized)
@@ -83,12 +88,16 @@ function AppShell() {
 
 function RootLayout() {
   return (
-    <>
-      <HeadContent />
-      <LocaleProvider>
-        <AppShell />
-      </LocaleProvider>
-      <Scripts />
-    </>
+    <html>
+      <head>
+        <HeadContent />
+      </head>
+      <body>
+        <LocaleProvider>
+          <AppShell />
+        </LocaleProvider>
+        <Scripts />
+      </body>
+    </html>
   )
 }

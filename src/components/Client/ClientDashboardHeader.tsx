@@ -5,8 +5,7 @@ import { useCurrentUser } from '../../utils/useCurrentUser'
 import { getAvatar } from '../../utils/getAvatar'
 import { useLocale } from '../../contexts/LocaleContext'
 import LocaleToggle from '../UI/LocaleToggle'
-
-const API_URL = import.meta.env.VITE_API_URL
+import { API_URL } from '../../services/apiConfig'
 
 export default function ClientDashboardHeader() {
   const { t, isRTL } = useLocale()

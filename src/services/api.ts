@@ -1,4 +1,4 @@
-const API_URL = import.meta.env.VITE_API_URL
+import { API_URL } from './apiConfig'
 
 type ApiOptions = {
   method?: string
@@ -37,15 +37,37 @@ export async function apiRequest<T>(
   }
 
   if (res.status === 401) {
-    window.dispatchEvent(new CustomEvent(AUTH_UNAUTHORIZED_EVENT))
+    const redirect =
+      `${window.location.pathname}${window.location.search}${window.location.hash}`
+    window.dispatchEvent(
+      new CustomEvent(AUTH_UNAUTHORIZED_EVENT, { detail: { redirect } }),
+    )
     throw new Error('Unauthorized')
   }
 
-  const data = await res.json()
+  const contentType = res.headers.get('content-type') || ''
+  const responseText = await res.text()
+  let data: any = null
 
-  if (!res.ok) {
-    throw new Error(data.message || 'Something went wrong')
+  if (responseText) {
+    if (contentType.includes('application/json')) {
+      try {
+        data = JSON.parse(responseText)
+      } catch {
+        throw new Error('The API returned invalid JSON. Please try again.')
+      }
+    } else {
+      throw new Error(
+        res.ok
+          ? 'The API URL is misconfigured and returned a web page instead of data.'
+          : `The server returned an unexpected response (${res.status}). Please try again.`,
+      )
+    }
   }
 
-  return data
+  if (!res.ok) {
+    throw new Error(data?.message || 'Something went wrong')
+  }
+
+  return data as T
 }

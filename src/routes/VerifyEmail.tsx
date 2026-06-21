@@ -1,15 +1,12 @@
-import { createFileRoute, redirect, useRouter } from '@tanstack/react-router'
+import { createFileRoute, useRouter } from '@tanstack/react-router'
 import { useState } from 'react'
 import { MailCheck } from 'lucide-react'
 import logo from '../assets/logo.png'
 import LocaleToggle from '../components/UI/LocaleToggle'
 import { resendSignupOtp, verifySignupOtp } from '../services/authServices'
-import { isAuthenticated } from '../utils/auth'
+import { getSafeRedirect } from '../utils/safeRedirect'
 
 export const Route = createFileRoute('/VerifyEmail')({
-  beforeLoad: () => {
-    if (isAuthenticated()) throw redirect({ to: '/ClientDashboard' })
-  },
   validateSearch: (search: Record<string, unknown>) => ({
     email: typeof search.email === 'string' ? search.email : '',
     redirect: typeof search.redirect === 'string' ? search.redirect : undefined,
@@ -41,10 +38,7 @@ function VerifyEmailPage() {
       setError('')
       const response: any = await verifySignupOtp({ email, otp })
       localStorage.setItem('user', JSON.stringify(response.data.user))
-      const target =
-        redirectTo && redirectTo.startsWith('/') && !redirectTo.startsWith('//')
-          ? redirectTo
-          : '/ClientDashboard'
+      const target = getSafeRedirect(redirectTo)
       await router.navigate({ href: target, replace: true })
     } catch (requestError) {
       setError(

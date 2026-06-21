@@ -35,6 +35,7 @@ export type Subscription = {
 }
 
 export type PaymentMethod = {
+  saved?: boolean
   type: string
   last4?: string
   brand?: string

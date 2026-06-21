@@ -348,7 +348,7 @@ function sanitiseProviderMessage(message: string): string {
     return 'The payment was cancelled and your card was not charged. You can safely try again.'
   }
   if (normalized.includes('declin')) {
-    return 'The test card was declined by the payment gateway. Please use a supported Tap test card and try again.'
+    return 'The card was declined by the payment gateway. Please verify the card details or use another payment method.'
   }
   return 'The payment was not completed. Your card was not charged.'
 }

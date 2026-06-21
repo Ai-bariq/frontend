@@ -106,6 +106,43 @@ function SubscribePage() {
   }
 
   useEffect(() => {
+    try {
+      const params = new URLSearchParams(window.location.search)
+      const queryCycle = params.get('billingCycle') as BillingCycle | null
+      const queryBranches = Number(params.get('branchesCount'))
+      if (queryCycle && BILLING_CYCLES.includes(queryCycle)) {
+        setBilling(queryCycle)
+      }
+      if (
+        Number.isInteger(queryBranches) &&
+        queryBranches >= MIN_BRANCHES &&
+        queryBranches <= ABS_MAX
+      ) {
+        setBranches(queryBranches)
+      }
+
+      const storedSelection = sessionStorage.getItem('bariq:checkout-selection')
+      if (storedSelection) {
+        sessionStorage.removeItem('bariq:checkout-selection')
+        const selection = JSON.parse(storedSelection) as {
+          billingCycle?: BillingCycle
+          branchesCount?: number
+        }
+        if (BILLING_CYCLES.includes(selection.billingCycle as BillingCycle)) {
+          setBilling(selection.billingCycle as BillingCycle)
+        }
+        if (
+          Number.isInteger(selection.branchesCount) &&
+          Number(selection.branchesCount) >= MIN_BRANCHES &&
+          Number(selection.branchesCount) <= ABS_MAX
+        ) {
+          setBranches(Number(selection.branchesCount))
+        }
+      }
+    } catch {
+      sessionStorage.removeItem('bariq:checkout-selection')
+    }
+
     // Post-payment history cleanup: result.tsx called history.go(-2) to land here
     // so that window.location.replace() can discard Tap + /result from the forward
     // history stack in a single operation. See result.tsx navigateAfterSuccess.
@@ -146,7 +183,9 @@ function SubscribePage() {
     } catch (err) {
       if (err instanceof Error && err.message.includes('401')) {
         localStorage.removeItem('user')
-        window.location.href = `/Login?redirect=${encodeURIComponent('/subscribe')}`
+        const subscribePath =
+          `${window.location.pathname}${window.location.search}`
+        window.location.href = `/Login?redirect=${encodeURIComponent(subscribePath)}`
         return
       }
       setError(err instanceof Error ? err.message : 'Something went wrong. Please try again.')

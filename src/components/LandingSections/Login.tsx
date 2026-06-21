@@ -6,16 +6,12 @@ import googleImage from '../../assets/google.png'
 import avatar from '../../assets/avatar.png'
 import mapsImage from '../../assets/maps.png'
 import { loginUser, signupUser } from '../../services/authServices'
+import { API_URL } from '../../services/apiConfig'
 import { useLocale } from '../../contexts/LocaleContext'
 import LocaleToggle from '../UI/LocaleToggle'
+import { getSafeRedirect } from '../../utils/safeRedirect'
 
 /** Only allow same-origin paths — reject absolute and protocol-relative URLs. */
-function isSafePath(path: string): boolean {
-  return path.startsWith('/') && !path.startsWith('//')
-}
-
-const API_URL = import.meta.env.VITE_API_URL
-
 const handleGoogleAuth = () => {
   window.location.href = `${API_URL}/auth/google`
 }
@@ -285,9 +281,13 @@ function PhoneField({
 
 type LoginPageProps = {
   initialMode?: AuthMode
+  redirectTo?: string
 }
 
-export default function LoginPage({ initialMode = 'login' }: LoginPageProps) {
+export default function LoginPage({
+  initialMode = 'login',
+  redirectTo,
+}: LoginPageProps) {
   const { t, dir, isRTL } = useLocale()
   const router = useRouter()
   const mode = initialMode
@@ -341,10 +341,7 @@ export default function LoginPage({ initialMode = 'login' }: LoginPageProps) {
       if (role === 'admin' || role === 'superAdmin') {
         router.navigate({ to: '/AdminDashboard', replace: true })
       } else {
-        const params = new URLSearchParams(window.location.search)
-        const raw = params.get('redirect')
-        const decoded = raw ? decodeURIComponent(raw) : null
-        const target = decoded && isSafePath(decoded) ? decoded : '/ClientDashboard'
+        const target = getSafeRedirect(redirectTo)
         router.navigate({ href: target, replace: true })
       }
     } catch (error) {
@@ -367,10 +364,8 @@ export default function LoginPage({ initialMode = 'login' }: LoginPageProps) {
         password: signupForm.password,
       }
       await signupUser(payload)
-      const params = new URLSearchParams(window.location.search)
-      const redirect = params.get('redirect')
       const query = new URLSearchParams({ email: payload.email })
-      if (redirect) query.set('redirect', redirect)
+      if (redirectTo) query.set('redirect', redirectTo)
       window.location.assign(`/VerifyEmail?${query.toString()}`)
     } catch (error) {
       setServerError(error instanceof Error ? error.message : t.login.errors.signupFailed)
@@ -379,13 +374,10 @@ export default function LoginPage({ initialMode = 'login' }: LoginPageProps) {
     }
   }
 
-  const handleModeSwitch = () => {
-    const params = new URLSearchParams(window.location.search)
-    const redirectParam = params.get('redirect')
-    const query = redirectParam ? `?redirect=${encodeURIComponent(redirectParam)}` : ''
-    const target = mode === 'login' ? `/Register${query}` : `/Login${query}`
-    window.location.replace(target)
-  }
+  const switchPath = mode === 'login' ? '/Register' : '/Login'
+  const switchHref = redirectTo
+    ? `${switchPath}?redirect=${encodeURIComponent(redirectTo)}`
+    : switchPath
 
   return (
     <section dir={dir} className="min-h-screen bg-[#F4FAF8] px-4 py-8 sm:px-6 lg:px-8">
@@ -439,11 +431,6 @@ export default function LoginPage({ initialMode = 'login' }: LoginPageProps) {
                     error={loginErrors.password}
                     isRTL={isRTL}
                   />
-                  <div className={`flex ${isRTL ? 'justify-start' : 'justify-end'}`}>
-                    <button type="button" className="text-[13px] font-medium text-[#14A595] transition hover:text-[#0E8E81]">
-                      {t.login.shared.forgotPassword}
-                    </button>
-                  </div>
                   <button
                     type="submit"
                     className="mt-2 flex h-11 w-full items-center justify-center rounded-[10px] bg-[#159A8C] text-[15px] font-bold text-white transition hover:bg-[#13897d] disabled:cursor-not-allowed disabled:opacity-60"
@@ -498,14 +485,12 @@ export default function LoginPage({ initialMode = 'login' }: LoginPageProps) {
 
               <div className="mt-4 flex flex-col items-center gap-3 text-center">
                 <p className="text-[14px] text-slate-400">{activeContent.switchPrompt}</p>
-                <button
-                  type="button"
+                <a
+                  href={switchHref}
                   className="flex h-11 w-full items-center justify-center rounded-[10px] border border-slate-200 bg-white text-[15px] font-medium text-slate-800 transition hover:bg-slate-50"
-                  onClick={handleModeSwitch}
-                  disabled={isSubmitting}
                 >
                   {activeContent.switchAction}
-                </button>
+                </a>
               </div>
             </div>
           </div>
