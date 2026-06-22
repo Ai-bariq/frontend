@@ -90,7 +90,7 @@ describe('billing API contracts', () => {
     expect(billing.subscription?.branchesCount).toBe(2)
   })
 
-  test('payment result verification never creates or activates a subscription', async () => {
+  test('payment result uses the authenticated server verification endpoint', async () => {
     let requestedMethod = ''
     server.use(
       http.get(`${API_URL}/payments/verify/chg_1`, ({ request }) => {
