@@ -170,6 +170,10 @@ function BillingPage() {
 
   const sub = billing?.subscription
   const status = sub?.status as SubscriptionStatus | undefined
+  const initialPaymentFailed =
+    status === 'cancelled' &&
+    billing?.lastPayment?.attemptType === 'initial' &&
+    billing.lastPayment.status === 'failed'
 
   const billingCycleLabel = (cycle: string) => {
     const map: Record<string, string> = {
@@ -243,7 +247,17 @@ function BillingPage() {
             {status === 'pending' && (
               <Banner message={t.clientPages.billing.pendingBanner} variant="info" />
             )}
-            {status === 'cancelled' && (
+            {initialPaymentFailed && (
+              <Banner
+                message={
+                  isRTL
+                    ? `فشلت الدفعة ولم يتم تفعيل الاشتراك.${billing.lastPayment?.failureReason ? ` السبب: ${billing.lastPayment.failureReason}` : ''}`
+                    : `Payment failed and the subscription was not activated.${billing.lastPayment?.failureReason ? ` Reason: ${billing.lastPayment.failureReason}` : ''}`
+                }
+                variant="error"
+              />
+            )}
+            {status === 'cancelled' && !initialPaymentFailed && (
               <Banner message={t.clientPages.billing.cancelledBanner} variant="info" />
             )}
             {status === 'active' && sub?.cancelAtPeriodEnd && (
@@ -261,8 +275,14 @@ function BillingPage() {
                     <h2 className="text-xl font-extrabold text-slate-900">{t.clientPages.billing.currentPlan}</h2>
                   </div>
                   {status && (
-                    <span className={`inline-flex items-center rounded-lg px-3 py-1 text-xs font-extrabold ${STATUS_STYLE[status] ?? 'bg-slate-100 text-slate-600'}`}>
-                      {subStatusLabel(status)}
+                    <span className={`inline-flex items-center rounded-lg px-3 py-1 text-xs font-extrabold ${
+                      initialPaymentFailed
+                        ? 'bg-red-500 text-white'
+                        : STATUS_STYLE[status] ?? 'bg-slate-100 text-slate-600'
+                    }`}>
+                      {initialPaymentFailed
+                        ? paymentStatusLabel('failed')
+                        : subStatusLabel(status)}
                     </span>
                   )}
                 </div>
@@ -390,6 +410,11 @@ function BillingPage() {
                             {formatAmount(p.amount, p.currency)}
                           </span>
                           <span className="text-xs text-slate-500">{formatDate(p.createdAt)}</span>
+                          {p.status === 'failed' && p.failureReason && (
+                            <span className="mt-1 max-w-md text-xs text-red-600">
+                              {p.failureReason}
+                            </span>
+                          )}
                         </div>
                         <div className={`flex flex-col items-end gap-1 ${isRTL ? 'items-start' : ''}`}>
                           <span className={`inline-flex rounded-lg px-2 py-0.5 text-xs font-bold ${PAYMENT_STATUS_STYLE[p.status as PaymentStatus] ?? 'bg-slate-100 text-slate-600'}`}>
