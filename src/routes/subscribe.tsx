@@ -5,11 +5,15 @@ import logo from '../assets/logo.png'
 import { useLocale } from '../contexts/LocaleContext'
 import LocaleToggle from '../components/UI/LocaleToggle'
 import { createCheckout, getBillingMe, type BillingCycle } from '../services/paymentServices'
-import { isAuthenticated } from '../utils/auth'
+import {
+  clearAuthStorage,
+  hasValidSession,
+  isUnauthorizedError,
+} from '../utils/auth'
 
 export const Route = createFileRoute('/subscribe')({
-  beforeLoad: ({ location }) => {
-    if (!isAuthenticated()) {
+  beforeLoad: async ({ location }) => {
+    if (!(await hasValidSession())) {
       throw redirect({
         to: '/Login',
         search: { redirect: location.href },
@@ -101,7 +105,18 @@ function SubscribePage() {
           setIsPastDue(true)
         }
       })
-      .catch(() => { setSubCheckError(true) })
+      .catch((error) => {
+        if (isUnauthorizedError(error)) {
+          clearAuthStorage()
+          const subscribePath =
+            `${window.location.pathname}${window.location.search}`
+          window.location.replace(
+            `/Login?redirect=${encodeURIComponent(subscribePath)}`,
+          )
+          return
+        }
+        setSubCheckError(true)
+      })
       .finally(() => setSubCheckDone(true))
   }
 
@@ -181,8 +196,8 @@ function SubscribePage() {
         inFlight.current = false
       }
     } catch (err) {
-      if (err instanceof Error && err.message.includes('401')) {
-        localStorage.removeItem('user')
+      if (isUnauthorizedError(err)) {
+        clearAuthStorage()
         const subscribePath =
           `${window.location.pathname}${window.location.search}`
         window.location.href = `/Login?redirect=${encodeURIComponent(subscribePath)}`

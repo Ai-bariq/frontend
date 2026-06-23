@@ -156,9 +156,9 @@ function ReviewsPage() {
   return (
     <section dir="rtl" className="w-full py-6 text-right">
       <div className="mx-auto max-w-[1380px]">
-        <div className="flex flex-wrap items-end justify-between gap-4">
+        <div className="flex flex-col items-stretch justify-between gap-4 sm:flex-row sm:flex-wrap sm:items-end">
           <div>
-            <h1 className="text-4xl font-extrabold text-slate-900">
+            <h1 className="text-2xl font-extrabold text-slate-900 sm:text-4xl">
               مركز التقييمات
             </h1>
             <p className="mt-2 text-slate-500">
@@ -168,7 +168,7 @@ function ReviewsPage() {
           <select
             value={listingId}
             onChange={(event) => setListingId(event.target.value)}
-            className="rounded-xl border border-slate-200 bg-white px-4 py-3 font-bold"
+            className="w-full min-w-0 rounded-xl border border-slate-200 bg-white px-4 py-3 font-bold sm:w-auto"
           >
             {listings.map((listing) => (
               <option key={listing._id} value={listing._id}>
@@ -237,7 +237,7 @@ function ReviewsPage() {
         </div>
 
         <div className="mt-5 flex flex-wrap items-center justify-between gap-3">
-          <div className="relative min-w-[280px] flex-1">
+          <div className="relative min-w-0 flex-1 basis-full sm:min-w-[280px]">
             <Search className="absolute right-4 top-3.5 h-4 w-4 text-slate-400" />
             <input
               value={query}

@@ -258,10 +258,10 @@ function AccountsPage() {
 
   return (
     <section dir="rtl" className="min-h-[calc(100vh-80px)] bg-white">
-      <div className="px-6 py-8">
+      <div className="px-0 py-4 sm:px-4 sm:py-6 md:px-6 md:py-8">
         <header className="mb-7 flex flex-col gap-4 text-right md:flex-row-reverse md:items-end md:justify-between">
           <div>
-            <h1 className="text-4xl font-extrabold tracking-tight text-slate-900">
+            <h1 className="text-2xl font-extrabold tracking-tight text-slate-900 sm:text-4xl">
               المواقع وحسابات Google
             </h1>
             <p className="mt-2 text-base text-slate-500">

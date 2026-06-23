@@ -40,15 +40,15 @@ function SettingsPage() {
 
   return (
     <section dir={dir} className="min-h-[calc(100vh-80px)] bg-white">
-      <div className="px-6 py-8">
+      <div className="px-0 py-4 sm:px-4 sm:py-6 md:px-6 md:py-8">
         <header className={`mb-6 ${textAlign}`}>
-          <h1 className="text-4xl font-extrabold tracking-tight text-slate-900">{t.clientPages.settings.title}</h1>
+          <h1 className="text-2xl font-extrabold tracking-tight text-slate-900 sm:text-4xl">{t.clientPages.settings.title}</h1>
           <p className="mt-2 text-base text-slate-500">{t.clientPages.settings.subtitle}</p>
         </header>
 
         {/* Profile card */}
         <section className="mb-6 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-          <div className="bg-[#EAF5F4] px-6 py-10">
+          <div className="bg-[#EAF5F4] px-4 py-8 sm:px-6 sm:py-10">
             <div className="flex flex-col items-center justify-center text-center">
               {avatarUrl ? (
                 <div className="h-28 w-28 overflow-hidden rounded-full border-4 border-white shadow-md">
@@ -59,12 +59,12 @@ function SettingsPage() {
                   <User className="h-12 w-12 text-slate-500" />
                 </div>
               )}
-              <h2 className="mt-4 text-4xl font-extrabold tracking-tight text-slate-900">{user?.name || '—'}</h2>
-              <p className="mt-1 text-lg text-slate-500">{user?.email || '—'}</p>
+              <h2 className="mt-4 max-w-full break-words text-2xl font-extrabold tracking-tight text-slate-900 sm:text-4xl">{user?.name || '—'}</h2>
+              <p className="mt-1 max-w-full break-all text-sm text-slate-500 sm:text-lg">{user?.email || '—'}</p>
             </div>
           </div>
 
-          <div className="px-6 py-6">
+          <div className="px-4 py-5 sm:px-6 sm:py-6">
             <div className="space-y-5">
               <div className={textAlign}>
                 <div className={`mb-2 flex items-center gap-2 text-slate-900 ${isRTL ? 'justify-end' : 'justify-start'}`}>

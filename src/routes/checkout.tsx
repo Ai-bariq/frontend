@@ -3,11 +3,15 @@ import { useEffect, useRef, useState } from 'react'
 import { Loader2, XCircle } from 'lucide-react'
 import { useLocale } from '../contexts/LocaleContext'
 import { createCheckout, type BillingCycle } from '../services/paymentServices'
-import { isAuthenticated } from '../utils/auth'
+import {
+  clearAuthStorage,
+  hasValidSession,
+  isUnauthorizedError,
+} from '../utils/auth'
 
 export const Route = createFileRoute('/checkout')({
-  beforeLoad: ({ location }) => {
-    if (!isAuthenticated()) {
+  beforeLoad: async ({ location }) => {
+    if (!(await hasValidSession())) {
       throw redirect({
         to: '/Login',
         search: { redirect: location.href },
@@ -69,8 +73,8 @@ function CheckoutPage() {
       })
       .catch((err) => {
         // Expired or invalid token — clear it and redirect to Login with intent
-        if (err instanceof Error && err.message.includes('401')) {
-          localStorage.removeItem('user')
+        if (isUnauthorizedError(err)) {
+          clearAuthStorage()
           const checkoutPath = `/checkout?${params.toString()}`
           window.location.href = `/Login?redirect=${encodeURIComponent(checkoutPath)}`
           return

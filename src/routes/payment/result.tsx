@@ -4,7 +4,14 @@ import { CheckCircle2, XCircle, Loader2, Receipt, GitBranch, CalendarDays, Bankn
 import logo from '../../assets/logo.png'
 import { useLocale } from '../../contexts/LocaleContext'
 import LocaleToggle from '../../components/UI/LocaleToggle'
-import { verifyCharge, getBillingMe, type VerifyResult, type Subscription } from '../../services/paymentServices'
+import {
+  verifyCharge,
+  verifyPayment,
+  getBillingMe,
+  type VerifyResult,
+  type Subscription,
+} from '../../services/paymentServices'
+import { clearAuthStorage, isUnauthorizedError } from '../../utils/auth'
 
 export const Route = createFileRoute('/payment/result')({
   component: PaymentResultPage,
@@ -19,6 +26,7 @@ function PaymentResultPage() {
 
   const params = new URLSearchParams(window.location.search)
   const tapId = params.get('tap_id')
+  const paymentId = params.get('paymentId')
 
   const [result, setResult] = useState<VerifyResult | null>(null)
   const [chargeId, setChargeId] = useState<string | null>(null)
@@ -79,7 +87,12 @@ function PaymentResultPage() {
     // history (the real Tap-removal work is done by navigateAfterSuccess).
     window.history.replaceState(null, '', window.location.href)
 
-    if (!tapId) {
+    if (!tapId && !paymentId) {
+      setProviderMessage(
+        isRTL
+          ? 'لم تُرجع بوابة الدفع رقم عملية يمكن التحقق منه.'
+          : 'The payment gateway did not return a transaction reference.',
+      )
       setResult('not_found')
       return
     }
@@ -87,8 +100,10 @@ function PaymentResultPage() {
     const poll = async () => {
       if (settled.current) return
       try {
-        const data = await verifyCharge(tapId)
-        setChargeId(data.chargeId)
+        const data = tapId
+          ? await verifyCharge(tapId)
+          : await verifyPayment(paymentId!)
+        setChargeId(data.chargeId ?? tapId ?? null)
 
         if (data.result === 'pending_verification') {
           pollCount.current += 1
@@ -116,6 +131,15 @@ function PaymentResultPage() {
           }
         }
       } catch (err) {
+        if (isUnauthorizedError(err)) {
+          clearAuthStorage()
+          const redirect =
+            `${window.location.pathname}${window.location.search}${window.location.hash}`
+          window.location.replace(
+            `/Login?redirect=${encodeURIComponent(redirect)}`,
+          )
+          return
+        }
         settled.current = true
         setError(err instanceof Error ? err.message : 'Unknown error')
         setResult('not_paid')
@@ -127,7 +151,7 @@ function PaymentResultPage() {
     return () => {
       if (timerRef.current) clearTimeout(timerRef.current)
     }
-  }, [tapId])
+  }, [tapId, paymentId, isRTL])
 
   // ── Loading / verifying ────────────────────────────────────────────────────
   if (result === null || result === 'pending_verification') {
@@ -350,5 +374,17 @@ function sanitiseProviderMessage(message: string): string {
   if (normalized.includes('declin')) {
     return 'The card was declined by the payment gateway. Please verify the card details or use another payment method.'
   }
-  return 'The payment was not completed. Your card was not charged.'
+  if (normalized.includes('abandon')) {
+    return 'The payment session was closed before completion. Your card was not charged.'
+  }
+  if (normalized.includes('restrict')) {
+    return 'The payment was restricted by the card issuer or payment gateway. Please contact your bank or use another card.'
+  }
+  if (normalized.includes('fail')) {
+    return 'The payment gateway reported that the payment failed. Please try again or use another card.'
+  }
+  if (normalized.includes('initiat') || normalized.includes('pending')) {
+    return 'The payment is still pending confirmation. Refresh this page shortly before trying another payment.'
+  }
+  return message || 'The payment was not completed.'
 }

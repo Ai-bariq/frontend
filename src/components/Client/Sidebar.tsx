@@ -6,11 +6,18 @@ import {
   CreditCard,
   Receipt,
   Settings,
+  X,
 } from 'lucide-react'
 import logo from '../../assets/logo.png'
 import { useLocale } from '../../contexts/LocaleContext'
 
-export default function Sidebar() {
+export default function Sidebar({
+  mobileOpen,
+  onClose,
+}: {
+  mobileOpen: boolean
+  onClose: () => void
+}) {
   const { t, isRTL } = useLocale()
   const pathname = useRouterState({
     select: (state) => state.location.pathname,
@@ -29,12 +36,38 @@ export default function Sidebar() {
   const border = isRTL ? 'border-l' : 'border-r'
 
   return (
-    <aside className={`fixed ${sideAnchor} z-40 flex w-[260px] flex-col ${border} border-slate-200 bg-white`}>
-      <div className="flex h-[88px] items-center justify-center border-b border-slate-200 px-6">
-        <img src={logo} alt="Bariq" className="h-11 w-auto object-contain" />
-      </div>
+    <>
+      {mobileOpen && (
+        <button
+          type="button"
+          aria-label="Close dashboard menu"
+          onClick={onClose}
+          className="fixed inset-0 z-40 bg-slate-950/35 backdrop-blur-[1px] md:hidden"
+        />
+      )}
 
-      <nav className="flex-1 px-4 py-6">
+      <aside
+        className={`fixed ${sideAnchor} z-50 flex w-[280px] max-w-[86vw] flex-col ${border} border-slate-200 bg-white shadow-xl transition-transform duration-200 md:z-40 md:w-[260px] md:max-w-none md:translate-x-0 md:shadow-none ${
+          mobileOpen
+            ? 'translate-x-0'
+            : isRTL
+              ? 'translate-x-full'
+              : '-translate-x-full'
+        }`}
+      >
+        <div className="flex h-[72px] items-center justify-between border-b border-slate-200 px-5 md:h-[88px] md:justify-center md:px-6">
+          <img src={logo} alt="Bariq" className="h-10 w-auto object-contain md:h-11" />
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Close dashboard menu"
+            className="flex h-10 w-10 items-center justify-center rounded-xl text-slate-500 hover:bg-slate-100 md:hidden"
+          >
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+
+        <nav className="flex-1 overflow-y-auto px-4 py-5 md:py-6">
         <div className="space-y-2">
           {navItems.map((item) => {
             const Icon = item.icon
@@ -46,6 +79,7 @@ export default function Sidebar() {
               <Link
                 key={item.label}
                 to={item.to}
+                onClick={onClose}
                 className={`flex items-center justify-between rounded-2xl px-4 py-3 text-[15px] font-semibold transition ${
                   isActive
                     ? 'bg-[#EAF7F4] text-[#0F9D94]'
@@ -67,7 +101,8 @@ export default function Sidebar() {
             )
           })}
         </div>
-      </nav>
-    </aside>
+        </nav>
+      </aside>
+    </>
   )
 }

@@ -141,21 +141,21 @@ function ClientDashboardHomePage() {
 
   return (
     <section dir="rtl" className="w-full text-right">
-      <div className="mx-auto flex max-w-[1380px] flex-col gap-6 py-6">
-        <div className="flex flex-wrap items-end justify-between gap-3">
+      <div className="mx-auto flex max-w-[1380px] flex-col gap-4 py-3 sm:gap-6 sm:py-6">
+        <div className="flex flex-col items-stretch justify-between gap-3 sm:flex-row sm:flex-wrap sm:items-end">
           <div>
-            <h1 className="text-3xl font-extrabold text-slate-900">
+            <h1 className="text-2xl font-extrabold text-slate-900 sm:text-3xl">
               لوحة التحكم
             </h1>
             <p className="mt-1 text-sm text-slate-500">
               تحليلات حقيقية من تقييمات Google Business.
             </p>
           </div>
-          <div className="flex flex-wrap gap-2">
+          <div className="grid grid-cols-1 gap-2 min-[420px]:grid-cols-2 sm:flex sm:flex-wrap">
             <select
               value={listingId}
               onChange={(event) => setListingId(event.target.value)}
-              className="rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold"
+              className="min-w-0 rounded-xl border border-slate-200 bg-white px-3 py-3 text-sm font-bold sm:px-4"
             >
               {listings.map((listing) => (
                 <option key={listing._id} value={listing._id}>
@@ -166,7 +166,7 @@ function ClientDashboardHomePage() {
             <select
               value={range}
               onChange={(event) => setRange(event.target.value)}
-              className="rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold"
+              className="min-w-0 rounded-xl border border-slate-200 bg-white px-3 py-3 text-sm font-bold sm:px-4"
             >
               <option value="7d">آخر 7 أيام</option>
               <option value="30d">آخر 30 يوماً</option>
@@ -180,7 +180,7 @@ function ClientDashboardHomePage() {
                   method: 'POST',
                 }).finally(() => void loadAnalytics())
               }}
-              className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold"
+              className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold"
             >
               <RefreshCw className="h-4 w-4" />
               تحديث
@@ -201,7 +201,7 @@ function ClientDashboardHomePage() {
         ) : (
           <>
             <div className="grid gap-4 xl:grid-cols-[1fr_2fr]">
-              <div className="flex items-center justify-between rounded-3xl border border-slate-200 bg-white p-6">
+              <div className="flex flex-col items-start gap-5 rounded-3xl border border-slate-200 bg-white p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">
                 <div>
                   <h2 className="text-2xl font-extrabold text-slate-900">
                     ملخص الأداء
@@ -210,7 +210,7 @@ function ClientDashboardHomePage() {
                     جودة السمعة بناءً على التقييم والمشاعر.
                   </p>
                 </div>
-                <div className="flex h-28 w-28 items-center justify-center rounded-full border-2 border-teal-300 bg-teal-50 text-4xl font-extrabold text-teal-700">
+                <div className="flex h-24 w-24 shrink-0 items-center justify-center self-center rounded-full border-2 border-teal-300 bg-teal-50 text-3xl font-extrabold text-teal-700 sm:h-28 sm:w-28 sm:self-auto sm:text-4xl">
                   {analytics.summary.performanceScore}
                 </div>
               </div>
@@ -562,7 +562,7 @@ function EmptyDashboard({
       className="flex min-h-[65vh] flex-col items-center justify-center text-center"
     >
       <MessageSquareText className="h-12 w-12 text-teal-600" />
-      <h1 className="mt-5 text-3xl font-extrabold text-slate-900">{title}</h1>
+      <h1 className="mt-5 text-2xl font-extrabold text-slate-900 sm:text-3xl">{title}</h1>
       <p className="mt-3 max-w-lg text-slate-500">{description}</p>
       <Link
         to="/ClientDashboard/Accounts"

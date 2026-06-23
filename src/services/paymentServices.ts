@@ -80,11 +80,12 @@ export type VerifyResult = 'success' | 'pending_verification' | 'not_paid' | 'no
 export type VerifyResponse = {
   success: boolean
   data: {
-    chargeId: string
-    tapStatus: string
+    chargeId?: string
+    tapStatus?: string
     result: VerifyResult
     subscriptionId?: string
     subscriptionStatus?: SubscriptionStatus
+    providerCode?: string
     message: string
   }
 }
@@ -131,6 +132,13 @@ export async function createCheckout(params: {
 
 export async function verifyCharge(chargeId: string): Promise<VerifyResponse['data']> {
   const res = await apiRequest<VerifyResponse>(`/payments/verify/${chargeId}`)
+  return res.data
+}
+
+export async function verifyPayment(paymentId: string): Promise<VerifyResponse['data']> {
+  const res = await apiRequest<VerifyResponse>(
+    `/payments/verify-payment/${encodeURIComponent(paymentId)}`,
+  )
   return res.data
 }
 

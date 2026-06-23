@@ -10,6 +10,7 @@ import whatsappIcon from '../../assets/whatsapp.svg'
 import { whatsappUrl } from '../../config'
 import { useLocale } from '../../contexts/LocaleContext'
 import type { LocaleStrings } from '../../locales'
+import { isAuthenticated } from '../../utils/auth'
 
 type BillingKey = 'monthly' | 'quarterly' | 'yearly'
 
@@ -85,6 +86,9 @@ export default function Pricing() {
   const summary = useMemo(() => buildPricingSummary(safeBranches, billing, t), [safeBranches, billing, t])
 
   const checkoutHref = `/subscribe?billingCycle=${billing}&branchesCount=${safeBranches}`
+  const pricingCtaHref = isAuthenticated()
+    ? checkoutHref
+    : `/Login?redirect=${encodeURIComponent(checkoutHref)}`
 
   const billingOptions = [
     { key: 'monthly' as BillingKey, label: t.pricing.billing.monthly },
@@ -200,7 +204,7 @@ export default function Pricing() {
             {/* CTA */}
             <div className="mt-3 flex justify-center">
               <a
-                href={checkoutHref}
+                href={pricingCtaHref}
                 className="inline-flex min-h-12 items-center justify-center gap-2 rounded-lg px-8 py-3 text-base font-bold text-white transition-all duration-300 bg-gradient-to-r from-[#0f9d94] to-[#16a085] shadow-[0_14px_30px_rgba(13,148,136,0.22)] hover:from-[#0d8f87] hover:to-[#128f7d] hover:shadow-[0_18px_34px_rgba(13,148,136,0.32)] hover:-translate-y-[1px]"
               >
                 <ArrowIcon className="h-4 w-4" />

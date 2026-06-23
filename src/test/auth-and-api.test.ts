@@ -2,8 +2,17 @@ import { http, HttpResponse } from 'msw'
 import { describe, expect, test } from 'vitest'
 import { apiRequest } from '../services/api'
 import { API_URL } from '../services/apiConfig'
-import { clearAuthStorage, hasAdminAccess, isAuthenticated } from '../utils/auth'
-import { getBillingMe, verifyCharge } from '../services/paymentServices'
+import {
+  clearAuthStorage,
+  hasAdminAccess,
+  hasValidSession,
+  isAuthenticated,
+} from '../utils/auth'
+import {
+  getBillingMe,
+  verifyCharge,
+  verifyPayment,
+} from '../services/paymentServices'
 import { server } from './setup'
 import { getSafeRedirect } from '../utils/safeRedirect'
 
@@ -50,6 +59,18 @@ describe('secure browser session flow', () => {
     expect(hasAdminAccess()).toBe(true)
     clearAuthStorage()
     expect(isAuthenticated()).toBe(false)
+  })
+
+  test('requires the backend session before allowing checkout flows', async () => {
+    localStorage.setItem('user', JSON.stringify({ role: 'client' }))
+    server.use(
+      http.get(`${API_URL}/users/me`, () =>
+        HttpResponse.json({ message: 'expired' }, { status: 401 }),
+      ),
+    )
+
+    await expect(hasValidSession()).resolves.toBe(false)
+    expect(localStorage.getItem('user')).toBeNull()
   })
 
   test('rotates the cookie session and retries one unauthorized API call', async () => {
@@ -109,5 +130,25 @@ describe('billing API contracts', () => {
     const result = await verifyCharge('chg_1')
     expect(requestedMethod).toBe('GET')
     expect(result.result).toBe('pending_verification')
+  })
+
+  test('payment result can verify using the return payment ID', async () => {
+    server.use(
+      http.get(`${API_URL}/payments/verify-payment/pay_1`, () =>
+        HttpResponse.json({
+          success: true,
+          data: {
+            chargeId: 'chg_1',
+            tapStatus: 'CAPTURED',
+            result: 'success',
+            message: 'Payment captured and subscription activated',
+          },
+        }),
+      ),
+    )
+
+    const result = await verifyPayment('pay_1')
+    expect(result.result).toBe('success')
+    expect(result.tapStatus).toBe('CAPTURED')
   })
 })

@@ -1,13 +1,17 @@
 import { useState } from 'react'
 import { Link } from '@tanstack/react-router'
-import { LogOut, LifeBuoy, MapPin, Plus, ChevronDown, User } from 'lucide-react'
+import { LogOut, LifeBuoy, MapPin, Plus, ChevronDown, User, Menu } from 'lucide-react'
 import { useCurrentUser } from '../../utils/useCurrentUser'
 import { getAvatar } from '../../utils/getAvatar'
 import { useLocale } from '../../contexts/LocaleContext'
 import LocaleToggle from '../UI/LocaleToggle'
 import { API_URL } from '../../services/apiConfig'
 
-export default function ClientDashboardHeader() {
+export default function ClientDashboardHeader({
+  onMenuClick,
+}: {
+  onMenuClick: () => void
+}) {
   const { t, isRTL } = useLocale()
   const [isOpen, setIsOpen] = useState(false)
   const user = useCurrentUser()
@@ -29,8 +33,8 @@ export default function ClientDashboardHeader() {
 
   // Header spans from sidebar edge to viewport edge
   const headerEdge = isRTL
-    ? 'left-0 right-[260px]'
-    : 'left-[260px] right-0'
+    ? 'left-0 right-0 md:right-[260px]'
+    : 'left-0 right-0 md:left-[260px]'
 
   const dropdownPosition = isRTL ? 'left-0' : 'right-0'
   const textAlign = isRTL ? 'text-right' : 'text-left'
@@ -38,15 +42,26 @@ export default function ClientDashboardHeader() {
   const justifyBetween = 'justify-between'
 
   return (
-    <header className={`fixed ${headerEdge} top-0 z-30 h-[88px] border-b border-slate-200 bg-white`}>
-      <div className={`flex h-full items-center ${justifyBetween} px-8`}>
+    <header className={`fixed ${headerEdge} top-0 z-30 h-[72px] border-b border-slate-200 bg-white md:h-[88px]`}>
+      <div className={`flex h-full items-center ${justifyBetween} gap-2 px-3 sm:px-5 md:px-8`}>
+        <button
+          type="button"
+          onClick={onMenuClick}
+          aria-label="Open dashboard menu"
+          className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-slate-200 text-slate-700 md:hidden ${
+            isRTL ? 'order-3' : 'order-0'
+          }`}
+        >
+          <Menu className="h-5 w-5" />
+        </button>
+
         {/* Profile section — left for LTR, right for RTL handled by flex order */}
-        <div className={`flex items-center ${isRTL ? 'order-2' : 'order-1'}`}>
+        <div className={`min-w-0 flex-1 items-center md:flex md:flex-none ${isRTL ? 'order-2' : 'order-1'}`}>
           <div className="relative">
             <button
               type="button"
               onClick={() => setIsOpen((prev) => !prev)}
-              className={`flex items-center gap-3 rounded-2xl px-3 py-2 transition hover:bg-slate-50 ${rowReverse}`}
+              className={`flex max-w-full items-center gap-2 rounded-2xl px-1 py-2 transition hover:bg-slate-50 sm:px-3 md:gap-3 ${rowReverse}`}
             >
               {avatarUrl ? (
                 <img src={avatarUrl} alt="profile" className="h-10 w-10 rounded-full object-cover" />
@@ -56,12 +71,12 @@ export default function ClientDashboardHeader() {
                 </div>
               )}
 
-              <div className={textAlign}>
-                <div className="text-[15px] font-bold text-slate-900">{user?.name ?? '—'}</div>
-                <div className="text-[12px] text-slate-500">{user?.email ?? ''}</div>
+              <div className={`min-w-0 ${textAlign}`}>
+                <div className="truncate text-[14px] font-bold text-slate-900 sm:text-[15px]">{user?.name ?? '—'}</div>
+                <div className="hidden max-w-[180px] truncate text-[12px] text-slate-500 sm:block">{user?.email ?? ''}</div>
               </div>
 
-              <ChevronDown className="h-4 w-4 text-slate-400" />
+              <ChevronDown className="hidden h-4 w-4 shrink-0 text-slate-400 sm:block" />
             </button>
 
             {isOpen && (
@@ -106,12 +121,12 @@ export default function ClientDashboardHeader() {
         </div>
 
         {/* Add Location + locale toggle */}
-        <div className={`flex items-center gap-3 ${isRTL ? 'order-1' : 'order-2'}`}>
+        <div className={`flex shrink-0 items-center gap-1.5 sm:gap-3 ${isRTL ? 'order-1' : 'order-2'}`}>
           <LocaleToggle />
 
           <Link
             to="/ClientDashboard/Accounts"
-            className="inline-flex items-center gap-2 rounded-xl bg-[#EAF7F4] px-4 py-3 text-[14px] font-bold text-[#0F9D94] transition hover:bg-[#dff3ee]"
+            className="hidden items-center gap-2 rounded-xl bg-[#EAF7F4] px-4 py-3 text-[14px] font-bold text-[#0F9D94] transition hover:bg-[#dff3ee] sm:inline-flex"
           >
             <MapPin className="h-4 w-4" />
             <span>{t.clientHeader.addLocation}</span>
